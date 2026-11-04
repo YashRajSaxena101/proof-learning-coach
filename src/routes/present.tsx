@@ -53,8 +53,8 @@ function Present() {
         <Link to="/" className="font-display text-lg font-semibold">Proof<span className="text-teal">.</span></Link>
         <span className="ml-3 whitespace-nowrap font-mono text-xs text-muted-foreground">{i + 1} / {SLIDES.length}</span>
         <div className="ml-auto flex gap-1">
-          <Button size="sm" variant={notes ? "default" : "ghost"} onClick={() => setNotes((n) => !n)} aria-pressed={notes}><StickyNote /><span className="hidden sm:inline">Notes (N)</span></Button>
-          <Button size="sm" variant="ghost" onClick={() => document.documentElement.requestFullscreen?.().catch(() => {})}><Maximize /><span className="hidden sm:inline">Full (F)</span></Button>
+          <Button size="sm" variant={notes ? "default" : "ghost"} onClick={() => setNotes((n) => !n)} aria-pressed={notes} aria-label="Toggle speaker notes (N)"><StickyNote /><span className="hidden sm:inline">Notes (N)</span></Button>
+          <Button size="sm" variant="ghost" onClick={() => document.documentElement.requestFullscreen?.().catch(() => {})} aria-label="Enter fullscreen (F)"><Maximize /><span className="hidden sm:inline">Full (F)</span></Button>
           <Button size="sm" variant="ghost" asChild><Link to="/"><X /> Exit</Link></Button>
         </div>
       </div>
@@ -80,10 +80,10 @@ function Present() {
       </motion.section>
       </AnimatePresence>
       {notes && <div className="relative z-10 border-t border-border bg-ink px-8 py-4 text-ink-foreground"><p className="kicker">Speaker notes</p><p className="mt-1 max-w-4xl">{s.notes}</p></div>}
-      <div className="relative z-10 flex items-center justify-between border-t border-border/60 px-4 py-2">
-        <Button variant="ghost" onClick={() => go(-1)} disabled={i === 0}><ChevronLeft /> Prev</Button>
+      <div className="relative z-10 flex items-center justify-between border-t border-border/60 px-4 pb-14 pt-2">
+        <Button variant="ghost" aria-label="Previous slide" onClick={() => go(-1)} disabled={i === 0}><ChevronLeft /> Prev</Button>
         <div className="flex gap-1.5">{SLIDES.map((_, k) => <button key={k} aria-label={`Slide ${k + 1}`} onClick={() => setI(k)} className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-teal" : "w-3 bg-border"}`} />)}</div>
-        <Button variant="ghost" onClick={() => go(1)} disabled={i === SLIDES.length - 1}>Next <ChevronRight /></Button>
+        <Button variant="ghost" aria-label="Next slide" onClick={() => go(1)} disabled={i === SLIDES.length - 1}>Next <ChevronRight /></Button>
       </div>
     </div>
   );
