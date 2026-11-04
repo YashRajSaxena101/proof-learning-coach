@@ -1,12 +1,9 @@
 import { useSyncExternalStore } from "react";
-import { emptyProgress, type EvidenceEvent, type Progress } from "@/domain/learning";
+import { emptyProgress, type Confidence, type EvidenceEvent, type Progress, type StepId } from "@/domain/learning";
 
-/**
- * Repository interface so a backend implementation can replace localStorage later.
- * Only LocalProgressRepository exists today — browser-only demo persistence.
- */
+/** Swappable persistence. Browser-local for the instant demo; account sync lives in remote-sync.ts. */
 export interface ProgressRepository {
-  readonly kind: "browser-local" | "remote";
+  readonly kind: "browser-local" | "account";
   load(): Progress;
   save(p: Progress): void;
   clear(): void;
@@ -21,41 +18,44 @@ export class LocalProgressRepository implements ProgressRepository {
       const raw = window.localStorage.getItem(KEY);
       const p = raw ? (JSON.parse(raw) as Progress) : null;
       return p && p.version === 1 ? p : emptyProgress();
-    } catch {
-      return emptyProgress();
-    }
+    } catch { return emptyProgress(); }
   }
-  save(p: Progress) { try { window.localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* quota/private mode */ } }
+  save(p: Progress) { try { window.localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* quota/private */ } }
   clear() { try { window.localStorage.removeItem(KEY); } catch { /* ignore */ } }
 }
+
+export interface AttemptInput { activity: StepId; answer: string; confidence?: Confidence; hintsUsed: number }
 
 let repo: ProgressRepository | null = null;
 let state: Progress | null = null;
 const SERVER = emptyProgress();
 const listeners = new Set<() => void>();
+const attemptListeners = new Set<(a: AttemptInput) => void>();
+const emit = () => listeners.forEach((l) => l());
 
 function ensure(): Progress {
-  if (!state) { repo = new LocalProgressRepository(); state = repo.load(); }
+  if (!state) { repo = repo ?? new LocalProgressRepository(); state = repo.load(); }
   return state;
 }
 
 export const progressStore = {
   get: ensure,
-  set(update: (p: Progress) => Progress) {
-    state = update(ensure());
-    repo?.save(state);
-    listeners.forEach((l) => l());
-  },
-  log(e: Omit<EvidenceEvent, "at">) {
+  mode: () => repo?.kind ?? "browser-local",
+  set(update: (p: Progress) => Progress) { state = update(ensure()); repo?.save(state); emit(); },
+  log(e: Omit<EvidenceEvent, "at">, attempt?: Omit<AttemptInput, "hintsUsed">) {
     progressStore.set((p) => ({ ...p, events: [...p.events, { ...e, at: new Date().toISOString() }] }));
+    if (attempt) {
+      const a = { ...attempt, hintsUsed: Math.min(3, ensure().hints[attempt.activity] ?? 0) };
+      attemptListeners.forEach((l) => l(a));
+    }
   },
-  reset() { repo?.clear(); state = emptyProgress(); listeners.forEach((l) => l()); },
+  reset() { repo?.clear(); state = emptyProgress(); repo?.save(state); emit(); },
+  /** Swap persistence (e.g. sign-in) and load its state. */
+  useRepository(r: ProgressRepository, initial?: Progress) { repo = r; state = initial ?? r.load(); emit(); },
+  onAttempt(l: (a: AttemptInput) => void) { attemptListeners.add(l); return () => attemptListeners.delete(l); },
+  subscribe(l: () => void) { listeners.add(l); return () => listeners.delete(l); },
 };
 
 export function useProgress(): Progress {
-  return useSyncExternalStore(
-    (l) => { listeners.add(l); return () => listeners.delete(l); },
-    ensure,
-    () => SERVER,
-  );
+  return useSyncExternalStore(progressStore.subscribe, ensure, () => SERVER);
 }
