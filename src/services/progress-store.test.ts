@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { progressStore, LocalProgressRepository } from "./progress-store";
+import { progressStore, LocalProgressRepository, getLocalPersistence } from "./progress-store";
+import { vi } from "vitest";
 import { emptyProgress } from "@/domain/learning";
 import { parseCoachResponse, classifyCoachError, coachMet, CONFIDENCE_INT } from "@/domain/evaluation";
 import { curatedFeedback } from "@/domain/curated-feedback";
@@ -21,6 +22,19 @@ describe("session reset", () => {
     progressStore.log({ step: "transfer", kind: "transfer", detail: "50" }, { activity: "transfer", answer: "50" });
     off();
     expect(seen).toEqual([3]);
+  });
+});
+
+describe("local persistence failures", () => {
+  it("reports memory-only when localStorage throws, and recovers when it works again", () => {
+    progressStore.useRepository(new LocalProgressRepository());
+    const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("QuotaExceeded"); });
+    progressStore.set((p) => ({ ...p, current: "predict" }));
+    expect(getLocalPersistence()).toBe("memory-only");
+    expect(progressStore.get().current).toBe("predict");
+    spy.mockRestore();
+    progressStore.set((p) => ({ ...p, current: "explore" }));
+    expect(getLocalPersistence()).toBe("saved");
   });
 });
 

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase";
 import { useSession, useSyncStatus } from "@/services/remote-sync";
+import { useLocalPersistence } from "@/services/progress-store";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -11,8 +12,12 @@ const NAV = [
 ] as const;
 
 function SyncBadge() {
-  const s = useSyncStatus();
-  const text = { local: "Browser-only demo", loading: "Loading account…", saving: "Saving…", saved: "Saved to account", error: "Save failed" }[s.kind];
+  const sync = useSyncStatus();
+  const local = useLocalPersistence();
+  const s = sync.kind === "local" && local === "memory-only"
+    ? { kind: "error" as const, message: "This browser blocked saving. Progress is kept in memory only and will be lost on reload." }
+    : sync;
+  const text = { local: "Browser-only demo", loading: "Loading account…", saving: "Saving…", saved: "Saved to account", error: sync.kind === "local" ? "Not saved · memory only" : "Save failed" }[s.kind];
   return (
     <span title={s.message} role={s.kind === "error" ? "alert" : undefined}
       className={cn("rounded-full border px-3 py-1 font-mono text-[11px]", s.kind === "error" ? "border-destructive/50 bg-warn-soft text-destructive" : "border-border text-muted-foreground")}>

@@ -20,8 +20,24 @@ export class LocalProgressRepository implements ProgressRepository {
       return p && p.version === 1 ? p : emptyProgress();
     } catch { return emptyProgress(); }
   }
-  save(p: Progress) { try { window.localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* quota/private */ } }
+  save(p: Progress) {
+    try { window.localStorage.setItem(KEY, JSON.stringify(p)); setLocalPersistence("saved"); }
+    catch { setLocalPersistence("memory-only"); }
+  }
   clear() { try { window.localStorage.removeItem(KEY); } catch { /* ignore */ } }
+}
+
+/** Whether browser-demo progress actually reached localStorage. "memory-only" = lost on reload. */
+export type LocalPersistence = "saved" | "memory-only";
+let localPersistence: LocalPersistence = "saved";
+const persistListeners = new Set<() => void>();
+function setLocalPersistence(v: LocalPersistence) {
+  if (v === localPersistence) return;
+  localPersistence = v; persistListeners.forEach((l) => l());
+}
+export const getLocalPersistence = () => localPersistence;
+export function useLocalPersistence(): LocalPersistence {
+  return useSyncExternalStore((l) => { persistListeners.add(l); return () => persistListeners.delete(l); }, () => localPersistence, () => "saved");
 }
 
 export interface AttemptInput { activity: StepId; answer: string; confidence?: Confidence; hintsUsed: number }
