@@ -4,7 +4,8 @@ import {
   orderGrainTotal, lineAmountTotal, growthPct, inconsistentOrders, contributions, collidingTotals,
   evaluateRepair, REPAIR_OPTIONS, WAREHOUSES, SUPPLIER_LINKS, inventoryJoinedTotal, inventoryTrueTotal,
 } from "./fanout";
-import { predictionBranch, outcome, emptyProgress, scoreTeachBack, TEACH_PASS } from "./learning";
+import { predictionBranch, outcome, emptyProgress, scoreTeachBack, hasCoreCriteria, transferUnassisted, earlierHints } from "./learning";
+import { curatedFeedback } from "./curated-feedback";
 
 const rows = joinOrders(ORDERS, LINE_ITEMS);
 
@@ -52,26 +53,49 @@ describe("Adaptive learning rules", () => {
     expect(predictionBranch(false, "low")).toBe("scaffold");
     expect(predictionBranch(true, "high")).toBe("confirm");
   });
-  const solved = () => {
+  const solved = (attempts = [50]) => {
     const p = emptyProgress();
     p.events.push({ at: "t", step: "transfer", kind: "transfer", detail: "50" });
     p.repairSolved = true;
-    p.transfer = { attempts: [50], solved: true };
-    p.teach = { text: "", met: ["duplication", "grain", "fix"] };
+    p.transfer = { attempts, solved: true };
     return p;
   };
-  it("clean first-try transfer + teach-back = demonstrated in this exercise", () => expect(outcome(solved())).toBe("demonstrated"));
-  it("hinted transfer is assisted success, not demonstrated", () => {
+  it("first-try, no-hint transfer is unassisted", () => expect(outcome(solved())).toBe("transfer_correct_unassisted"));
+  it("transfer hint makes it assisted", () => {
     const p = solved(); p.hints.transfer = 1;
-    expect(outcome(p)).toBe("assisted_success");
+    expect(outcome(p)).toBe("transfer_correct_assisted");
   });
-  it("second-attempt transfer is assisted success", () => {
-    const p = solved(); p.transfer.attempts = [100, 50];
-    expect(outcome(p)).toBe("assisted_success");
+  it("a wrong first try (retry) makes it assisted", () => expect(outcome(solved([100, 50]))).toBe("transfer_correct_assisted"));
+  it("earlier hints are reported separately and don't relabel an unassisted transfer", () => {
+    const p = solved(); p.hints.predict = 2; p.hints.repair = 1;
+    expect(transferUnassisted(p)).toBe(true);
+    expect(earlierHints(p)).toBe(3);
+  });
+  it("unsolved transfer stays in progress", () => {
+    const p = solved(); p.transfer = { attempts: [100], solved: false };
+    expect(outcome(p)).toBe("in_progress");
   });
   it("teach-back rubric scores a complete explanation", () => {
     const met = scoreTeachBack("The join repeated each order once per line item, so totals doubled. Sum li.amount instead; DISTINCT drops O103 because it has the same $120 value.");
-    expect(met.length).toBeGreaterThanOrEqual(TEACH_PASS);
+    expect(hasCoreCriteria(met)).toBe(true);
     expect(scoreTeachBack("revenue went up")).toEqual([]);
+  });
+  it("missing fix fails core criteria even when DISTINCT is explained", () => {
+    const met = scoreTeachBack("The join duplicated each order once per line item, so it doubled. DISTINCT is wrong because O101 and O103 share $120.");
+    expect(met).toContain("distinct");
+    expect(met).not.toContain("fix");
+    expect(hasCoreCriteria(met)).toBe(false);
+  });
+  it("negated fix is not counted and is flagged in the provisional checklist", () => {
+    const r = curatedFeedback("Each order was duplicated per line item at that grain; do not sum line amounts.");
+    expect(r.met).not.toContain("fix");
+    expect(r.negationFlag).toBe(true);
+    expect(r.coreCovered).toBe(false);
+  });
+  it("checklist never claims verification even when all keywords match", () => {
+    const r = curatedFeedback("The join repeated each order per line item so it doubled; sum li.amount instead.");
+    expect(r.coreCovered).toBe(true);
+    expect("passed" in r).toBe(false);
+    expect(r.message).toMatch(/not a verified assessment/);
   });
 });

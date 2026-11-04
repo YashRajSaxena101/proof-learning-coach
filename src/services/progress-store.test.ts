@@ -43,5 +43,5 @@ describe("proof-coach response handling", () => {
     expect(classifyCoachError(401, null).code).toBe("UNAUTHENTICATED");
   });
   it("maps confidence to the 1..5 database range", () => expect(CONFIDENCE_INT).toEqual({ low: 1, medium: 3, high: 5 }));
-  it("curated fallback fails a vague answer", () => expect(curatedFeedback("revenue went up a lot").passed).toBe(false));
+  it("curated fallback fails a vague answer", () => expect(curatedFeedback("revenue went up a lot").coreCovered).toBe(false));
 });
