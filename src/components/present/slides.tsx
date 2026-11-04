@@ -12,7 +12,7 @@ export const SLIDES: Slide[] = [
     body: <ul className="space-y-3 text-2xl max-w-4xl list-disc pl-6"><li>Learners can write a JOIN but not notice when it changes row grain.</li><li>Completion badges don't show whether help was needed.</li><li>Confident misconceptions go unaddressed.</li></ul>,
     notes: "Frame this as a hypothesis we want to validate, not a measured finding." },
   { kicker: "03 · The Proof experience", title: "Predict → inspect → trace → repair → teach → transfer.",
-    body: <p className="text-2xl max-w-4xl">Each step produces evidence. Hints are tiered and recorded. Assisted success is never labeled mastery.</p>,
+    body: <p className="text-2xl max-w-4xl">Each step produces evidence. Hints are tiered and recorded. Assisted success is never labeled as demonstrated.</p>,
     notes: "Walk the eight-step progress map. Mention the Looker card: a documented product approach to the same problem, not a customer incident." },
   { kicker: "04 · Live demo", title: "The Revenue Mirage", demoCue: true,
     body: <ol className="space-y-2 text-xl max-w-4xl list-decimal pl-6"><li>Predict $500 with high confidence</li><li>Click O101 → two line items</li><li>Play the join: 4 orders → 8 rows</li><li>Click $1,000 to trace duplicates</li><li>Try DISTINCT → $380, see why</li><li>Inventory transfer: 50 units</li></ol>,
@@ -26,12 +26,12 @@ export const SLIDES: Slide[] = [
       <p><Tag k="Built" /> Instant browser-only demo (localStorage)</p>
       <p><Tag k="Built" /> Email/password accounts; sessions sync and resume (owner-only access rules)</p>
       <p><Tag k="Built" /> Every answer saved as a permanent attempt record</p>
-      <p><Tag k="Built" /> Server-side AI teach-back evaluation; keyword rubric labeled as fallback</p>
-      <p><Tag k="Roadmap" /> Saving AI evaluations needs a server key (not yet configured)</p>
+      <p><Tag k="Built" /> Signed-in teach-back sent to a server-side AI coach; keyword rubric shown, labeled, as fallback</p>
+      <p><Tag k="Roadmap" /> Live AI answers: waiting on the Ollama key in the server function</p>
       <p><Tag k="Roadmap" /> Organization roles + real instructor dashboard</p>
       <p><Tag k="Roadmap" /> More scenarios beyond join fan-out</p>
     </div>,
-    notes: "Be precise. AI evaluation runs on the server only for signed-in users and is shown, but it is not stored until the server key for evaluations is added. Instructor view is sample data. Mastery in the demo still uses the curated rubric." },
+    notes: "Be precise. The proof-coach server function is deployed but its Ollama key is not entered, so it currently returns not-configured and the app shows the labeled rubric fallback. Outcomes say Demonstrated in this exercise, not permanent mastery. Instructor view is sample data." },
   { kicker: "07 · Validation plan", title: "A pilot we'd like to run.",
     body: <ul className="space-y-3 text-2xl max-w-4xl list-disc pl-6"><li>Small cohort of student volunteers</li><li>Measure unassisted transfer success, before vs. after</li><li>Compare to a reading-only control</li><li>No results yet — we haven't run it</li></ul>,
     notes: "We have no metrics. Say so plainly." },

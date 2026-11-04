@@ -1,4 +1,4 @@
-// Pure learning-state logic: adaptive branching, hints, mastery, teach-back rubric.
+// Pure learning-state logic: adaptive branching, hints, outcomes, teach-back rubric.
 
 export type Confidence = "low" | "medium" | "high";
 export type StepId = "brief" | "predict" | "explore" | "join" | "trace" | "repair" | "teach" | "transfer";
@@ -45,14 +45,14 @@ export const emptyProgress = (): Progress => ({
   transfer: { attempts: [], solved: false }, events: [],
 });
 
-export type Outcome = "not_started" | "in_progress" | "assisted_success" | "mastery";
-/** Mastery requires an unassisted, first-try transfer plus a solved repair and a passing teach-back. */
+export type Outcome = "not_started" | "in_progress" | "assisted_success" | "demonstrated";
+/** "Demonstrated in this exercise" requires an unassisted, first-try transfer plus a solved repair and a passing teach-back. */
 export function outcome(p: Progress): Outcome {
   if (p.events.length === 0) return "not_started";
   if (!p.transfer.solved || !p.repairSolved) return "in_progress";
   const transferClean = p.transfer.attempts.length === 1 && !(p.hints.transfer ?? 0);
   const teachPass = (p.teach?.met.length ?? 0) >= TEACH_PASS;
-  return transferClean && teachPass ? "mastery" : "assisted_success";
+  return transferClean && teachPass ? "demonstrated" : "assisted_success";
 }
 
 export const HINTS: Record<StepId, [string, string, string]> = {

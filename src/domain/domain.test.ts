@@ -60,8 +60,8 @@ describe("Adaptive learning rules", () => {
     p.teach = { text: "", met: ["duplication", "grain", "fix"] };
     return p;
   };
-  it("clean first-try transfer + teach-back = mastery", () => expect(outcome(solved())).toBe("mastery"));
-  it("hinted transfer is assisted success, not mastery", () => {
+  it("clean first-try transfer + teach-back = demonstrated in this exercise", () => expect(outcome(solved())).toBe("demonstrated"));
+  it("hinted transfer is assisted success, not demonstrated", () => {
     const p = solved(); p.hints.transfer = 1;
     expect(outcome(p)).toBe("assisted_success");
   });

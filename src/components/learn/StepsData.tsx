@@ -19,7 +19,7 @@ export function ExploreStep() {
       canContinue={seen.size >= 2}
       onContinue={() => progressStore.log({ step: "explore", kind: "view", detail: `Inspected ${seen.size} orders` })}>
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="paper overflow-hidden">
+        <div className="paper overflow-x-auto">
           <p className="border-b px-4 py-2 font-mono text-xs">orders · 4 rows</p>
           <table className="w-full">
             <thead><tr><th className={th}>id</th><th className={th}>total</th></tr></thead>
@@ -33,7 +33,7 @@ export function ExploreStep() {
             </tbody>
           </table>
         </div>
-        <div className="paper overflow-hidden">
+        <div className="paper overflow-x-auto">
           <p className="border-b px-4 py-2 font-mono text-xs">line_items · 8 rows</p>
           <table className="w-full">
             <thead><tr><th className={th}>id</th><th className={th}>order_id</th><th className={th}>amount</th></tr></thead>
@@ -96,7 +96,7 @@ export function JoinStep() {
         <Button variant="ghost" onClick={() => { setPlaying(false); setN(0); }}><RotateCcw /> Reset</Button>
         <span className="font-mono text-xs text-muted-foreground">← → step · Space play/pause{reduced && " · reduced motion on"}</span>
       </div>
-      <div ref={box} tabIndex={0} onKeyDown={onKey} aria-label="Joined rows output. Use arrow keys to step." className="paper overflow-hidden focus-visible:ring-2 focus-visible:ring-ring">
+      <div ref={box} tabIndex={0} onKeyDown={onKey} aria-label="Joined rows output. Use arrow keys to step." className="paper overflow-x-auto focus-visible:ring-2 focus-visible:ring-ring">
         <table className="w-full">
           <thead><tr><th className={th}>#</th><th className={th}>order_id</th><th className={th}>order.total</th><th className={th}>line_id</th><th className={th}>line.amount</th></tr></thead>
           <tbody aria-live="polite">
