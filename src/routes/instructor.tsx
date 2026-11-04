@@ -18,7 +18,7 @@ export const Route = createFileRoute("/instructor")({
 // Fictional illustrative learners — not real students or measured results.
 const SAMPLE = [
   { name: "Learner A", prediction: "High-confidence wrong", hints: 1, repair: "2 attempts", outcome: "Assisted success" },
-  { name: "Learner B", prediction: "Correct", hints: 0, repair: "1 attempt", outcome: "Mastery" },
+  { name: "Learner B", prediction: "Correct", hints: 0, repair: "1 attempt", outcome: "Demonstrated in this exercise" },
   { name: "Learner C", prediction: "Low-confidence wrong", hints: 5, repair: "3 attempts", outcome: "In progress" },
   { name: "Learner D", prediction: "Correct", hints: 2, repair: "1 attempt", outcome: "Assisted success" },
 ];

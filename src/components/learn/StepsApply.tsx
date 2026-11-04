@@ -153,10 +153,10 @@ export function TransferStep() {
           <Callout tone="warn" title={`${last} isn't right.`}>{last === 100 ? "That's the duplicated report figure. Each warehouse appears once per supplier." : "Check how many rows each warehouse produces after the join."}</Callout>
         )}
         {p.transfer.solved && (
-          <Callout tone="ok" title={o === "mastery" ? "Mastery demonstrated" : "Assisted success — not yet mastery"}>
-            {o === "mastery"
-              ? "Correct on the first try with no hints, after a solid teach-back. That's transferable evidence."
-              : "You reached 50 units, but with hints, extra attempts, or an incomplete teach-back. Proof records this honestly as assisted success; try a new transfer later to show mastery."}
+          <Callout tone="ok" title={o === "demonstrated" ? "Demonstrated in this exercise" : "Assisted success — not yet demonstrated"}>
+            {o === "demonstrated"
+              ? "Correct on the first try with no hints, after a solid teach-back. That's evidence for this exercise — not a permanent mastery claim."
+              : "You reached 50 units, but with hints, extra attempts, or an incomplete teach-back. Proof records this honestly as assisted success; try a fresh transfer later to demonstrate it independently."}
             <div className="mt-3 flex flex-wrap gap-2">
               <Button asChild size="sm"><Link to="/evidence">View learning evidence</Link></Button>
             </div>

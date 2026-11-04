@@ -1,27 +1,33 @@
 import { z } from "zod";
-import { TEACH_CRITERIA } from "./learning";
 
-/** Shape the server-side AI evaluator must return. Validated before it is trusted or stored. */
-export const EvaluationSchema = z.object({
-  criteria: z.object({ duplication: z.boolean(), grain: z.boolean(), fix: z.boolean(), distinct: z.boolean() }),
-  verdict: z.enum(["pass", "revise"]),
-  feedback: z.string().min(1).max(600),
+/** Response contract of the `proof-coach` Edge Function. Validated before display. */
+export const CoachResponseSchema = z.object({
+  feedback: z.string().min(1),
+  criteria: z.object({ duplication: z.boolean(), grain: z.boolean(), fix: z.boolean() }),
+  evidence: z.array(z.string()),
+  needs_clarification: z.boolean(),
+  passed: z.boolean(),
+  mode: z.literal("live-ai"),
+  provider: z.literal("Ollama"),
+  model: z.string().min(1),
 });
-export type Evaluation = z.infer<typeof EvaluationSchema>;
-export const EVALUATOR_VERSION = "ai-teachback-v1";
+export type CoachResponse = z.infer<typeof CoachResponseSchema>;
 
-export function parseEvaluation(raw: string): Evaluation | null {
-  try {
-    const r = EvaluationSchema.safeParse(JSON.parse(raw));
-    if (!r.success) return null;
-    // Verdict must be consistent with criteria: pass requires >= 3 criteria met.
-    const met = metCriteria(r.data);
-    return { ...r.data, verdict: met.length >= 3 && r.data.verdict === "pass" ? "pass" : "revise" };
-  } catch {
-    return null;
-  }
+export function parseCoachResponse(raw: unknown): CoachResponse | null {
+  const r = CoachResponseSchema.safeParse(raw);
+  return r.success ? r.data : null;
 }
-export const metCriteria = (e: Evaluation) => TEACH_CRITERIA.map((c) => c.id).filter((id) => e.criteria[id as keyof Evaluation["criteria"]]);
+
+export const coachMet = (c: CoachResponse) => (["duplication", "grain", "fix"] as const).filter((k) => c.criteria[k]);
 
 /** Confidence labels → stored integer 1..5. */
 export const CONFIDENCE_INT = { low: 1, medium: 3, high: 5 } as const;
+
+/** Classify a failed coach call into a user-facing fallback reason. */
+export type CoachUnavailable = { code: "AI_NOT_CONFIGURED" | "UNAUTHENTICATED" | "INVALID_RESPONSE" | "ERROR"; message: string };
+export function classifyCoachError(status: number | undefined, body: unknown): CoachUnavailable {
+  const code = (body as { code?: string } | null)?.code;
+  if (status === 503 && code === "AI_NOT_CONFIGURED") return { code: "AI_NOT_CONFIGURED", message: "Live AI isn't configured on the server yet." };
+  if (status === 401) return { code: "UNAUTHENTICATED", message: "Your session expired. Sign in again for AI feedback." };
+  return { code: "ERROR", message: `The AI coach couldn't respond${status ? ` (HTTP ${status})` : ""}.` };
+}
