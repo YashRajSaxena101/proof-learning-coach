@@ -14,7 +14,7 @@ export function Tilt({ className, children, max = 4, ...rest }: HTMLMotionProps<
   return (
     <motion.div ref={ref} {...rest}
       className={cn("spot", className)}
-      style={allowed ? { rotateX, rotateY, transformPerspective: 900 } : undefined}
+      style={allowed ? { rotateX, rotateY, transformPerspective: 900 } : {}}
       onPointerMove={(e) => {
         const el = ref.current; if (!el || e.pointerType !== "mouse") return;
         const r = el.getBoundingClientRect();
