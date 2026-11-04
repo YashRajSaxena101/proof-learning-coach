@@ -43,8 +43,8 @@ function Present() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [go, startTimer]);
-  useEffect(() => { document.title = `${i + 1}/${SLIDES.length} — ${SLIDES[i].title}`; }, [i]);
-  const s = SLIDES[i];
+  useEffect(() => { document.title = `${i + 1}/${SLIDES.length} — ${SLIDES[i]!.title}`; }, [i]);
+  const s = SLIDES[i]!;
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex items-center gap-2 border-b px-4 py-2 text-sm">
@@ -57,8 +57,8 @@ function Present() {
         </div>
       </div>
       <main key={i} className="flex flex-1 flex-col justify-center px-8 md:px-20 py-12 animate-rise"
-        onTouchStart={(e) => ((e.currentTarget as HTMLElement).dataset.x = String(e.touches[0].clientX))}
-        onTouchEnd={(e) => { const x0 = Number((e.currentTarget as HTMLElement).dataset.x); const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); }}>
+        onTouchStart={(e) => ((e.currentTarget as HTMLElement).dataset["x"] = String(e.touches[0]!.clientX))}
+        onTouchEnd={(e) => { const x0 = Number((e.currentTarget as HTMLElement).dataset["x"]); const dx = e.changedTouches[0]!.clientX - x0; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); }}>
         <p className="kicker text-sm">{s.kicker}</p>
         <h1 className="mt-4 max-w-5xl text-5xl md:text-7xl font-medium leading-[1.02]">{s.title}</h1>
         <div className="mt-10">{s.body}</div>

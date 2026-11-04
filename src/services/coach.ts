@@ -15,7 +15,7 @@ export const scriptedCoach: TeachingCoach = {
     const missing = TEACH_CRITERIA.filter((c) => !met.includes(c.id));
     const passed = met.length >= TEACH_PASS;
     const message = passed
-      ? `That's clear enough that I could fix the dashboard myself. ${missing.length ? `One thing I'd still ask: ${missing[0].label.toLowerCase()}?` : "You covered every point."}`
+      ? `That's clear enough that I could fix the dashboard myself. ${missing.length ? `One thing I'd still ask: ${missing[0]!.label.toLowerCase()}?` : "You covered every point."}`
       : `I'm still confused. Could you ${missing.slice(0, 2).map((m) => m.label.toLowerCase()).join(", and ")}?`;
     return { mode: "scripted", message, met, passed };
   },

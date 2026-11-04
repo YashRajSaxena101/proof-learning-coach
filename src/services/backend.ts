@@ -5,8 +5,8 @@
 export const SUPABASE_PROJECT_REF = "vyaydusrhhcazxshadxv";
 
 export function backendStatus() {
-  const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+  const url = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
+  const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
   return {
     configured: Boolean(url && key),
     persistence: "browser-local" as const,
