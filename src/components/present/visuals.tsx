@@ -1,17 +1,30 @@
 import { motion } from "motion/react";
 import { ParticleField } from "@/components/fx/ParticleField";
+import { useMotionPref } from "@/lib/motion-pref";
 
-const draw = { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 1, ease: "easeOut" as const } };
+const drawAnim = { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 1, ease: "easeOut" as const } };
 
 /** One illustrative visual per slide. Values shown are the fictional scenario's own numbers only. */
 export function SlideVisual({ index }: { index: number }) {
+  const { allowed } = useMotionPref();
+  // Static composition when motion is paused/reduced: MotionConfig does not stop pathLength/height animations.
+  return <MotionGate allowed={allowed}><SlideArt index={index} /></MotionGate>;
+}
+function MotionGate({ allowed, children }: { allowed: boolean; children: React.ReactNode }) {
+  return allowed ? <>{children}</> : <MotionOffContext.Provider value>{children}</MotionOffContext.Provider>;
+}
+import { createContext, useContext } from "react";
+const MotionOffContext = createContext(false);
+function SlideArt({ index }: { index: number }) {
+  const off = useContext(MotionOffContext);
+  const draw = off ? { initial: false as const, animate: { pathLength: 1 }, transition: { duration: 0 } } : drawAnim;
   const box = "hidden md:block w-full max-w-md justify-self-end";
   switch (index) {
     case 0:
       return (
         <svg viewBox="0 0 300 220" className={box} aria-hidden>
           <rect x="50" y="140" width="60" height="60" rx="6" fill="var(--muted-foreground)" opacity="0.4" />
-          <motion.rect x="170" width="60" rx="6" fill="var(--teal)" initial={{ y: 200, height: 0 }} animate={{ y: 80, height: 120 }} transition={{ type: "spring", stiffness: 70, damping: 14 }} />
+          <motion.rect x="170" width="60" rx="6" fill="var(--teal)" initial={off ? false : { y: 200, height: 0 }} animate={{ y: 80, height: 120 }} transition={off ? { duration: 0 } : { type: "spring", stiffness: 70, damping: 14 }} />
           <text x="80" y="130" textAnchor="middle" fill="var(--foreground)" fontFamily="Fraunces" fontSize="20">$500</text>
           <text x="200" y="70" textAnchor="middle" fill="var(--foreground)" fontFamily="Fraunces" fontSize="20">$1,000?</text>
           <text x="200" y="215" textAnchor="middle" fill="var(--warn)" fontFamily="JetBrains Mono" fontSize="9">REPORTED · UNVERIFIED</text>
@@ -35,7 +48,7 @@ export function SlideVisual({ index }: { index: number }) {
           {labels.map((l, k) => {
             const a = (k / labels.length) * Math.PI * 2 - Math.PI / 2;
             return (
-              <motion.g key={l} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 * k }}>
+              <motion.g key={l} initial={off ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={off ? { duration: 0 } : { delay: 0.15 * k }}>
                 <circle cx={150 + Math.cos(a) * 110} cy={150 + Math.sin(a) * 110} r="7" fill="var(--teal)" />
                 <text x={150 + Math.cos(a) * 80} y={154 + Math.sin(a) * 80} textAnchor="middle" fontSize="11" fill="var(--foreground)">{l}</text>
               </motion.g>

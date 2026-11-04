@@ -4,10 +4,11 @@ import { ArrowRight, Check } from "lucide-react";
 import { Page } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Tilt } from "@/components/fx/Tilt";
-import { STEPS, earlierHints, outcome } from "@/domain/learning";
+import { STEPS, completedSteps, earlierHints, outcome } from "@/domain/learning";
 import { progressStore, useProgress } from "@/services/progress-store";
 import { useAuthReady, useSession, useSyncStatus } from "@/services/remote-sync";
 import { cn } from "@/lib/utils";
+import { useMotionPref } from "@/lib/motion-pref";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -25,14 +26,14 @@ export const Route = createFileRoute("/dashboard")({
 
 const OUTCOME = { not_started: "Not started", in_progress: "In progress", transfer_correct_assisted: "Transfer correct · with help", transfer_correct_unassisted: "Transfer correct · unassisted first try" };
 
-function Orbit({ done, current }: { done: string[]; current: string }) {
+function Orbit({ done, current, animate }: { done: string[]; current: string; animate: boolean }) {
   const R = 120, C = 150;
   return (
     <svg viewBox="0 0 300 300" className="mx-auto w-full max-w-[320px]" role="img" aria-label={`Progress map: ${done.length} of ${STEPS.length} steps completed`}>
       <circle cx={C} cy={C} r={R} fill="none" stroke="var(--border)" strokeDasharray="2 6" />
       <motion.circle cx={C} cy={C} r={R} fill="none" stroke="var(--teal)" strokeWidth="2" strokeLinecap="round"
-        transform={`rotate(-90 ${C} ${C})`} initial={{ pathLength: 0 }} animate={{ pathLength: done.length / STEPS.length }}
-        transition={{ type: "spring", stiffness: 60, damping: 18 }} />
+        transform={`rotate(-90 ${C} ${C})`} initial={animate ? { pathLength: 0 } : false} animate={{ pathLength: done.length / STEPS.length }}
+        transition={animate ? { type: "spring", stiffness: 60, damping: 18 } : { duration: 0 }} />
       {STEPS.map((s, i) => {
         const a = (i / STEPS.length) * Math.PI * 2 - Math.PI / 2;
         const x = C + Math.cos(a) * R, y = C + Math.sin(a) * R;
@@ -61,6 +62,8 @@ function Dashboard() {
   const attempts = p.events.filter((e) => e.kind !== "view" && e.kind !== "hint").length;
   const cur = STEPS.find((s) => s.id === p.current)!;
   const fresh = p.events.length === 0;
+  const done = completedSteps(p);
+  const { allowed } = useMotionPref();
   const label = session ? "Account workspace" : "Browser demo";
 
   return (
@@ -87,7 +90,7 @@ function Dashboard() {
           </div>
           <ol className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {STEPS.map((s, i) => {
-              const d = p.completed.includes(s.id);
+              const d = done.includes(s.id);
               return (
                 <li key={s.id} className={cn("flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs", s.id === p.current ? "border-teal/50 bg-teal-soft/60" : "border-border")}>
                   <span className={cn("grid size-5 place-items-center rounded-full border font-mono text-[10px]", d && "border-teal bg-teal text-ink")}>{d ? <Check className="size-3" /> : i + 1}</span>
@@ -97,7 +100,7 @@ function Dashboard() {
             })}
           </ol>
         </Tilt>
-        <div className="paper rounded-3xl p-6"><Orbit done={p.completed} current={p.current} /></div>
+        <div className="paper rounded-3xl p-6"><Orbit done={done} current={p.current} animate={allowed} /></div>
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
