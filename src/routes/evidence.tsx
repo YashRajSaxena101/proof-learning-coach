@@ -6,6 +6,7 @@ import { STEPS, outcome, type EvidenceEvent } from "@/domain/learning";
 import { useProgress, progressStore } from "@/services/progress-store";
 import { useSession } from "@/services/remote-sync";
 import { cn } from "@/lib/utils";
+import { useMotionPref } from "@/lib/motion-pref";
 
 export const Route = createFileRoute("/evidence")({
   head: () => ({
@@ -22,23 +23,24 @@ export const Route = createFileRoute("/evidence")({
 });
 
 const LABEL = { not_started: "Not started", in_progress: "In progress", transfer_correct_assisted: "Transfer correct · assisted", transfer_correct_unassisted: "Transfer correct · unassisted first try" };
-const tone = (e: EvidenceEvent) => (e.correct === true ? "var(--ok)" : e.correct === false ? "var(--warn)" : e.assisted ? "var(--teal)" : "var(--muted-foreground)");
+const tone = (e: EvidenceEvent) => (e.correct === true ? "var(--ok)" : e.correct === false ? "var(--warn)" : e.assisted ? "oklch(0.78 0.12 230)" : "var(--muted-foreground)");
 
 /** Constellation: one column per step, one star per recorded event. Positions are deterministic. */
 function Constellation({ events }: { events: EvidenceEvent[] }) {
   const W = 800, H = 220;
   const col = (s: string) => STEPS.findIndex((x) => x.id === s);
   const counts: Record<string, number> = {};
-  const pts = events.map((e) => {
+  const { allowed } = useMotionPref();
+  const pts = events.map((e, idx) => {
     const c = col(e.step); const k = (counts[e.step] = (counts[e.step] ?? 0) + 1) - 1;
-    return { e, x: 50 + c * ((W - 100) / 7) + (k % 2 ? 14 : -14) * Math.min(1, k), y: 60 + ((k * 37) % 120) };
+    return { e, x: 50 + c * ((W - 100) / 7) + (k % 2 ? 14 : -14) * Math.min(1, k), y: 50 + ((idx * 53 + k * 29) % 140) };
   });
   return (
     <svg viewBox={`0 0 ${W} ${H + 30}`} className="w-full" role="img" aria-label={`${events.length} recorded events across the simulation steps`}>
       {STEPS.map((s, i) => <g key={s.id}><line x1={50 + i * ((W - 100) / 7)} x2={50 + i * ((W - 100) / 7)} y1="30" y2={H} stroke="var(--border)" strokeDasharray="2 5" />
         <text x={50 + i * ((W - 100) / 7)} y={H + 22} textAnchor="middle" fontSize="11" fill="var(--muted-foreground)" fontFamily="JetBrains Mono">{i + 1}</text></g>)}
       <motion.polyline points={pts.map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke="var(--teal)" strokeOpacity="0.35" strokeWidth="1"
-        initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.2, ease: "easeOut" }} />
+        initial={allowed ? { pathLength: 0 } : false} animate={{ pathLength: 1 }} transition={{ duration: 1.2, ease: "easeOut" }} />
       {pts.map((p, i) => (
         <motion.g key={i} initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.04 * i, type: "spring", stiffness: 300, damping: 18 }} style={{ transformOrigin: `${p.x}px ${p.y}px` }}>
           <circle cx={p.x} cy={p.y} r="10" fill={tone(p.e)} opacity="0.15" />
@@ -74,7 +76,7 @@ function Evidence() {
       <div className="paper mt-8 rounded-3xl p-4 md:p-6">
         <Constellation events={p.events} />
         <div className="mt-2 flex flex-wrap gap-4 font-mono text-[11px] text-muted-foreground">
-          {[["var(--ok)", "correct"], ["var(--warn)", "incorrect"], ["var(--teal)", "assisted"], ["var(--muted-foreground)", "viewed"]].map(([c, l]) => <span key={l} className="flex items-center gap-1.5"><span className="size-2 rounded-full" style={{ background: c }} />{l}</span>)}
+          {[["var(--ok)", "correct"], ["var(--warn)", "incorrect"], ["oklch(0.78 0.12 230)", "assisted"], ["var(--muted-foreground)", "viewed"]].map(([c, l]) => <span key={l} className="flex items-center gap-1.5"><span className="size-2 rounded-full" style={{ background: c }} />{l}</span>)}
         </div>
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
