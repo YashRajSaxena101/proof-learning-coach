@@ -53,7 +53,7 @@ function AuthPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
         <figcaption className="absolute bottom-0 p-6">
           <p className="kicker">Proof</p>
-          <p className="mt-2 max-w-sm font-display text-3xl leading-tight">Keep your evidence. Resume the case anywhere.</p>
+          <p className="mt-2 max-w-sm font-display text-2xl leading-tight md:text-3xl">Keep your evidence. Resume the case anywhere.</p>
         </figcaption>
       </figure>
       <div className="paper glow-line relative isolate overflow-hidden rounded-3xl p-6 md:p-8">
