@@ -55,11 +55,11 @@ async function attachAccount(s: Session) {
   setStatus({ kind: "saved" });
 }
 
-export async function insertAttempt(a: AttemptInput): Promise<{ id: string } | { error: string }> {
+export async function insertAttempt(a: AttemptInput, activityId?: string): Promise<{ id: string } | { error: string }> {
   if (!session) return { error: "Not signed in" };
   const id = crypto.randomUUID();
   const { error } = await supabase.from("learning_attempts").insert({
-    id, user_id: session.user.id, activity_id: `revenue-mirage:${a.activity}`, answer: a.answer.slice(0, 4000),
+    id, user_id: session.user.id, activity_id: activityId ?? `revenue-mirage:${a.activity}`, answer: a.answer.slice(0, 4000),
     confidence: a.confidence ? CONFIDENCE_INT[a.confidence] : null, hints_used: Math.min(3, a.hintsUsed),
   });
   if (error) { setStatus({ kind: "error", message: `Attempt not saved: ${error.message}` }); return { error: error.message }; }

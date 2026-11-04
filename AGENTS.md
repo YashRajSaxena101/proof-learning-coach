@@ -15,4 +15,4 @@
 - The keyword rubric (`src/domain/curated-feedback.ts`) must always be labeled as non-AI fallback.
 - Use the user's external Supabase project, never Lovable Cloud.
 - Supabase client uses the external project's publishable key (`src/integrations/supabase.ts`); RLS enforces ownership.
-- AI teach-back evaluation runs only in `src/lib/teach-eval.functions.ts`, evaluates the stored attempt row, and only the server writes `learning_evaluations`; the client never stores evaluation results as authority.
+- AI teach-back evaluation runs only in the user's deployed Supabase Edge Function `proof-coach` (called via `src/services/coach.ts` after inserting a `teach-back` attempt); it alone writes `learning_evaluations`. The client validates its response and never records fallback or client results as AI evaluations.

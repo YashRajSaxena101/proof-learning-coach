@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { progressStore, LocalProgressRepository } from "./progress-store";
 import { emptyProgress } from "@/domain/learning";
-import { parseEvaluation, CONFIDENCE_INT } from "@/domain/evaluation";
+import { parseCoachResponse, classifyCoachError, coachMet, CONFIDENCE_INT } from "@/domain/evaluation";
 import { curatedFeedback } from "@/domain/curated-feedback";
 
 describe("session reset", () => {
@@ -24,16 +24,23 @@ describe("session reset", () => {
   });
 });
 
-describe("AI evaluation validation", () => {
-  const ok = { criteria: { duplication: true, grain: true, fix: true, distinct: false }, verdict: "pass", feedback: "Good." };
-  it("accepts a well-formed evaluation", () => expect(parseEvaluation(JSON.stringify(ok))?.verdict).toBe("pass"));
-  it("downgrades a pass that meets fewer than 3 criteria", () => {
-    const bad = { ...ok, criteria: { duplication: true, grain: false, fix: false, distinct: false } };
-    expect(parseEvaluation(JSON.stringify(bad))?.verdict).toBe("revise");
+describe("proof-coach response handling", () => {
+  const ok = { feedback: "Clear.", criteria: { duplication: true, grain: true, fix: false }, evidence: ["repeated per line item"],
+    needs_clarification: false, passed: false, mode: "live-ai", provider: "Ollama", model: "gemma4:31b" };
+  it("accepts the documented success shape", () => {
+    const r = parseCoachResponse(ok);
+    expect(r?.model).toBe("gemma4:31b");
+    expect(coachMet(r!)).toEqual(["duplication", "grain"]);
   });
-  it("rejects malformed output", () => {
-    expect(parseEvaluation("not json")).toBeNull();
-    expect(parseEvaluation(JSON.stringify({ verdict: "pass" }))).toBeNull();
+  it("rejects anything not marked live-ai from Ollama", () => {
+    expect(parseCoachResponse({ ...ok, mode: "scripted" })).toBeNull();
+    expect(parseCoachResponse({ ...ok, criteria: { duplication: true } })).toBeNull();
+    expect(parseCoachResponse(null)).toBeNull();
+  });
+  it("503 AI_NOT_CONFIGURED is reported as not configured", () => {
+    expect(classifyCoachError(503, { code: "AI_NOT_CONFIGURED" }).code).toBe("AI_NOT_CONFIGURED");
+    expect(classifyCoachError(500, null).code).toBe("ERROR");
+    expect(classifyCoachError(401, null).code).toBe("UNAUTHENTICATED");
   });
   it("maps confidence to the 1..5 database range", () => expect(CONFIDENCE_INT).toEqual({ low: 1, medium: 3, high: 5 }));
   it("curated fallback fails a vague answer", () => expect(curatedFeedback("revenue went up a lot").passed).toBe(false));

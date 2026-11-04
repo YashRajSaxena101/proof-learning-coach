@@ -2,12 +2,11 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { REPAIR_OPTIONS, evaluateRepair, collidingTotals, ORDERS, WAREHOUSES, SUPPLIER_LINKS, inventoryTrueTotal, type RepairId } from "@/domain/fanout";
-import { TEACH_CRITERIA, outcome } from "@/domain/learning";
+import { TEACH_CRITERIA, outcome, type Confidence } from "@/domain/learning";
 import { progressStore, useProgress } from "@/services/progress-store";
-import { useServerFn } from "@tanstack/react-start";
 import { curatedFeedback, type CuratedReply } from "@/domain/curated-feedback";
-import { metCriteria } from "@/domain/evaluation";
-import { evaluateTeachBack, type EvalResult } from "@/lib/teach-eval.functions";
+import { coachMet, type CoachResponse } from "@/domain/evaluation";
+import { requestCoachEvaluation } from "@/services/coach";
 import { insertAttempt, useSession } from "@/services/remote-sync";
 import { Callout, HintPanel, StepShell, money } from "./shared";
 import { cn } from "@/lib/utils";
@@ -48,26 +47,30 @@ export function RepairStep() {
   );
 }
 
+type AiState = { ok: true; result: CoachResponse } | { ok: false; message: string };
+
 export function TeachStep() {
   const p = useProgress();
   const session = useSession();
-  const evalFn = useServerFn(evaluateTeachBack);
   const [text, setText] = useState(p.teach?.text ?? "");
+  const [conf, setConf] = useState<Confidence | "">("");
   const [curated, setCurated] = useState<CuratedReply | null>(null);
-  const [ai, setAi] = useState<EvalResult | null>(null);
+  const [ai, setAi] = useState<AiState | null>(null);
   const [loading, setLoading] = useState(false);
   const send = async () => {
+    if (!conf) return;
     setLoading(true); setAi(null);
     const r = curatedFeedback(text);
     setCurated(r);
     progressStore.set((s) => ({ ...s, teach: { text, met: r.met } }));
-    progressStore.log({ step: "teach", kind: "teach", detail: `Curated rubric: ${r.met.length}/4 criteria`, correct: r.passed });
+    progressStore.log({ step: "teach", kind: "teach", detail: `Curated rubric (not AI): ${r.met.length}/4 criteria`, correct: r.passed, confidence: conf });
     if (session) {
-      const a = await insertAttempt({ activity: "teach", answer: text, hintsUsed: p.hints.teach ?? 0 });
-      if ("error" in a) setAi({ ok: false, error: `Your answer wasn't saved, so it couldn't be evaluated: ${a.error}` });
+      const a = await insertAttempt({ activity: "teach", answer: text, confidence: conf, hintsUsed: p.hints.teach ?? 0 }, "teach-back");
+      if ("error" in a) setAi({ ok: false, message: `Your answer wasn't saved, so it couldn't be sent to the AI coach: ${a.error}` });
       else {
-        try { setAi(await evalFn({ data: { accessToken: session.access_token, attemptId: a.id, text } })); }
-        catch { setAi({ ok: false, error: "The evaluation service didn't respond." }); }
+        const res = await requestCoachEvaluation(a.id);
+        setAi(res.ok ? { ok: true, result: res.result } : { ok: false, message: res.reason.message });
+        if (res.ok) progressStore.log({ step: "teach", kind: "teach", detail: `AI coach (${res.result.provider} ${res.result.model}) responded` });
       }
     }
     setLoading(false);
@@ -78,20 +81,28 @@ export function TeachStep() {
       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5} maxLength={4000} aria-label="Your explanation"
         placeholder="Explain the duplication, the row grain, a correct fix, and why DISTINCT isn't one…"
         className="w-full max-w-3xl rounded-lg border border-input bg-card p-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+      <fieldset>
+        <legend className="mb-2 text-sm text-muted-foreground">How confident are you in this explanation?</legend>
+        <div className="flex gap-2">
+          {(["low", "medium", "high"] as const).map((c) => (
+            <Button key={c} size="sm" variant={conf === c ? "default" : "outline"} aria-pressed={conf === c} onClick={() => setConf(c)} className="capitalize">{c}</Button>
+          ))}
+        </div>
+      </fieldset>
       <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={send} disabled={text.trim().length < 20 || loading}>{loading ? (session ? "AI is evaluating…" : "Checking…") : "Send to Sam"}</Button>
-        {!session && <span className="text-xs text-muted-foreground"><Link to="/auth" className="text-teal underline">Sign in</Link> for server-side AI evaluation. Demo mode uses curated feedback only.</span>}
+        <Button onClick={send} disabled={text.trim().length < 20 || !conf || loading}>{loading ? (session ? "Asking the AI coach…" : "Checking…") : "Send to Sam"}</Button>
+        {!session && <span className="text-xs text-muted-foreground">Browser demo: curated feedback only. <Link to="/auth" className="text-teal underline">Sign in</Link> to send it to the AI coach.</span>}
       </div>
       {ai && (ai.ok ? (
         <div className="max-w-3xl space-y-3">
-          <p className="kicker">AI evaluation · server-side model</p>
-          <Callout tone={ai.evaluation.verdict === "pass" ? "ok" : "info"} title={`Sam (AI): ${ai.evaluation.verdict === "pass" ? "That makes sense" : "Not there yet"}`}>
-            {ai.evaluation.feedback}
-            <p className="mt-2 font-mono text-xs text-muted-foreground">{ai.persisted ? "Evaluation saved to your account by the server." : `Not saved: ${ai.persistNote}.`}</p>
+          <p className="kicker">Live AI · {ai.result.provider} · {ai.result.model}</p>
+          <Callout tone={ai.result.passed ? "ok" : "info"} title={`Sam (AI): ${ai.result.needs_clarification ? "Can you clarify?" : ai.result.passed ? "That makes sense" : "Not there yet"}`}>
+            {ai.result.feedback}
+            {ai.result.evidence.length > 0 && <ul className="mt-2 list-disc pl-5 text-xs">{ai.result.evidence.map((e, i) => <li key={i}>“{e}”</li>)}</ul>}
           </Callout>
-          <CriteriaList met={metCriteria(ai.evaluation)} />
+          <CriteriaList ids={["duplication", "grain", "fix"]} met={coachMet(ai.result)} />
         </div>
-      ) : <Callout tone="warn" title="AI evaluation unavailable — showing curated fallback only">{ai.error}</Callout>)}
+      ) : <Callout tone="warn" title="AI coach unavailable — curated fallback shown below">{ai.message} The fallback is not recorded as an AI evaluation.</Callout>)}
       {curated && (
         <div className="max-w-3xl space-y-3">
           <p className="kicker">Curated feedback · keyword rubric fallback (not AI)</p>
@@ -103,10 +114,10 @@ export function TeachStep() {
   );
 }
 
-function CriteriaList({ met }: { met: string[] }) {
+function CriteriaList({ met, ids }: { met: string[]; ids?: string[] }) {
   return (
     <ul className="grid gap-2 text-sm sm:grid-cols-2">
-      {TEACH_CRITERIA.map((c) => (
+      {TEACH_CRITERIA.filter((c) => !ids || ids.includes(c.id)).map((c) => (
         <li key={c.id} className={cn("rounded border px-3 py-2", met.includes(c.id) ? "border-ok/40 bg-ok-soft" : "border-border text-muted-foreground")}>
           {met.includes(c.id) ? "✓" : "○"} {c.label}
         </li>
