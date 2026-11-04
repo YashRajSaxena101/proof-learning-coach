@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "motion/react";
 import { Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HINTS, STEPS, type StepId } from "@/domain/learning";
@@ -25,9 +26,9 @@ export function StepShell({ id, kicker, title, children, canContinue = true, onC
 }) {
   const next = nextOf(id);
   return (
-    <section className="animate-rise" aria-labelledby={`h-${id}`}>
+    <motion.section initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 200, damping: 26 }} aria-labelledby={`h-${id}`}>
       <p className="kicker">{kicker}</p>
-      <h2 id={`h-${id}`} className="mt-2 text-3xl md:text-4xl font-medium">{title}</h2>
+      <h2 id={`h-${id}`} className="mt-3 text-4xl md:text-5xl font-medium leading-[1] tracking-[-0.025em]">{title}</h2>
       <div className="mt-6 space-y-6">{children}</div>
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Button variant="teal" size="lg" disabled={!canContinue}
@@ -37,7 +38,7 @@ export function StepShell({ id, kicker, title, children, canContinue = true, onC
         {!canContinue && <span className="text-sm text-muted-foreground">Complete this step to continue.</span>}
       </div>
       <HintPanel step={id} />
-    </section>
+    </motion.section>
   );
 }
 
@@ -52,7 +53,7 @@ export function HintPanel({ step }: { step: StepId }) {
     setOpen(true);
   };
   return (
-    <aside className="mt-8 rounded-lg border border-dashed border-border p-4">
+    <aside className="mt-8 rounded-2xl border border-dashed border-border bg-card/40 p-4">
       <div className="flex flex-wrap items-center gap-3">
         <Lightbulb className="size-4 text-teal" aria-hidden />
         <span className="text-sm font-medium">Hints</span>
@@ -83,3 +84,9 @@ export function Callout({ tone = "info", title, children }: { tone?: "info" | "w
     </div>
   );
 }
+
+/** Stable per-order colour so rows can be mapped across tables. */
+export const ORDER_COLOR: Record<string, string> = { O101: "var(--teal)", O102: "oklch(0.78 0.12 230)", O103: "oklch(0.88 0.08 90)", O104: "oklch(0.75 0.13 300)" };
+export const OrderDot = ({ id }: { id: string }) => (
+  <span aria-hidden className="mr-2 inline-block size-2 rounded-full align-middle" style={{ background: ORDER_COLOR[id] ?? "var(--muted-foreground)" }} />
+);

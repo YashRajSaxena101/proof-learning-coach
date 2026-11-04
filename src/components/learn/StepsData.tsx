@@ -26,7 +26,7 @@ export function ExploreStep() {
             <tbody>
               {ORDERS.map((o) => (
                 <tr key={o.id} className={cn("border-t transition-colors", sel === o.id && "bg-teal-soft")}>
-                  <td className={td}><button className="underline decoration-dotted underline-offset-4 hover:text-teal" aria-pressed={sel === o.id} onClick={() => pick(o.id)}>{o.id}</button></td>
+                  <td className={td}><button className="underline decoration-dotted underline-offset-4 hover:text-teal" aria-pressed={sel === o.id} onClick={() => pick(o.id)}><OrderDot id={o.id} />{o.id}</button></td>
                   <td className={td}>{money(o.total)}</td>
                 </tr>
               ))}
@@ -40,7 +40,7 @@ export function ExploreStep() {
             <tbody>
               {LINE_ITEMS.map((l) => (
                 <tr key={l.id} className={cn("border-t transition-colors", sel === l.orderId ? "bg-teal-soft" : sel && "opacity-40")}>
-                  <td className={td}>{l.id}</td><td className={td}>{l.orderId}</td><td className={td}>{money(l.amount)}</td>
+                  <td className={td}>{l.id}</td><td className={td}><OrderDot id={l.orderId} />{l.orderId}</td><td className={td}>{money(l.amount)}</td>
                 </tr>
               ))}
             </tbody>
@@ -102,7 +102,7 @@ export function JoinStep() {
           <tbody aria-live="polite">
             {ROWS.slice(0, n).map((r, i) => (
               <tr key={r.lineId} className="border-t animate-flyin">
-                <td className={td}>{i + 1}</td><td className={td}>{r.orderId}</td>
+                <td className={td}>{i + 1}</td><td className={td}><OrderDot id={r.orderId} />{r.orderId}</td>
                 <td className={cn(td, "font-semibold text-warn")}>{money(r.orderTotal)}</td>
                 <td className={td}>{r.lineId}</td><td className={td}>{money(r.lineAmount)}</td>
               </tr>
@@ -136,7 +136,7 @@ export function TraceStep() {
           {c.map((x) => (
             <button key={x.orderId} onClick={() => setFocus(x.orderId)} aria-pressed={focus === x.orderId}
               className={cn("paper p-4 text-left animate-rise transition", focus === x.orderId && "ring-2 ring-teal")}>
-              <p className="font-mono text-sm">{x.orderId}</p>
+              <p className="font-mono text-sm"><OrderDot id={x.orderId} />{x.orderId}</p>
               <p className="mt-2 font-mono text-sm">{money(x.total)} × {x.timesCounted} = <strong>{money(x.contributed)}</strong></p>
               <p className="mt-1 text-xs text-warn">+{money(x.excess)} duplicated</p>
               {focus === x.orderId && <p className="mt-2 text-xs text-muted-foreground">Rows: {ROWS.filter((r) => r.orderId === x.orderId).map((r) => r.lineId).join(", ")}</p>}
