@@ -83,7 +83,7 @@ function Present() {
       <div className="relative z-10 flex items-center justify-between border-t border-border/60 px-4 pb-14 pt-2">
         <Button variant="ghost" aria-label="Previous slide" onClick={() => go(-1)} disabled={i === 0}><ChevronLeft /> Prev</Button>
         <div className="flex gap-1.5">{SLIDES.map((_, k) => <button key={k} aria-label={`Slide ${k + 1}`} onClick={() => setI(k)} className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-teal" : "w-3 bg-border"}`} />)}</div>
-        <Button variant="ghost" onClick={() => go(1)} disabled={i === SLIDES.length - 1}>Next <ChevronRight /></Button>
+        <Button variant="ghost" aria-label="Next slide" onClick={() => go(1)} disabled={i === SLIDES.length - 1}>Next <ChevronRight /></Button>
       </div>
     </div>
   );
