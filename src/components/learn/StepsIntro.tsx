@@ -24,15 +24,16 @@ export function BriefStep() {
           <div key={k} className="paper p-4"><p className="text-xs text-muted-foreground">{k}</p><p className="mt-1 font-display text-3xl">{v}</p></div>
         ))}
       </div>
+      <p className="font-mono text-sm text-warn">Unverified report — investigate before deciding</p>
       <p className="text-muted-foreground max-w-2xl">Your job: decide whether the CFO should trust this number. Northstar and all data here are fictional teaching material.</p>
     </StepShell>
   );
 }
 
 const CHOICES = [
-  { id: "1000", label: "$1,000 — revenue really doubled", correct: false },
-  { id: "500", label: "$500 — flat; the query double-counts", correct: true },
-  { id: "380", label: "$380 — revenue actually fell", correct: false },
+  { id: "1000", label: "$1,000 (+100%)", correct: false },
+  { id: "500", label: "$500 (0%)", correct: true },
+  { id: "380", label: "$380 (−24%)", correct: false },
 ];
 
 export function PredictStep() {

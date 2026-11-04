@@ -14,7 +14,7 @@ export const Route = createFileRoute("/learn")({
   head: () => ({
     meta: [
       { title: "The Revenue Mirage — Proof simulation" },
-      { name: "description", content: "Interactive SQL join fan-out simulation: find why revenue looks doubled and fix it." },
+      { name: "description", content: "Interactive simulation: investigate a reported revenue jump before a budget decision." },
       { property: "og:title", content: "The Revenue Mirage — Proof" },
       { property: "og:description", content: "Predict, inspect, trace, repair, teach back, and transfer." },
       { property: "og:type", content: "website" },
