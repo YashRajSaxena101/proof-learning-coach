@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Page } from "@/components/SiteHeader";
+import { Tilt } from "@/components/fx/Tilt";
 
 export const Route = createFileRoute("/instructor")({
   head: () => ({
@@ -22,27 +23,54 @@ const SAMPLE = [
   { name: "Learner C", prediction: "Low-confidence wrong", hints: 5, repair: "3 attempts", outcome: "In progress" },
   { name: "Learner D", prediction: "Correct", hints: 2, repair: "1 attempt", outcome: "Transfer correct · assisted" },
 ];
+const Sample = () => <span className="rounded-full border border-warn/40 bg-warn-soft px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-warn">Sample data</span>;
 
 function Instructor() {
+  const maxH = Math.max(...SAMPLE.map((s) => s.hints));
   return (
     <Page>
-      <div role="note" className="rounded-lg border border-warn/40 bg-warn-soft p-4 text-sm">
-        <strong>Sample dashboard.</strong> All rows below are invented placeholders to illustrate the layout. No authentication or real learner data is connected.
+      <div role="note" className="rounded-2xl border border-warn/40 bg-warn-soft p-4 text-sm">
+        <strong>Sample dashboard.</strong> All rows and charts below are invented placeholders to illustrate the layout. No organization roles, authentication or real learner data is connected.
       </div>
-      <h1 className="mt-8 text-4xl">Cohort · Revenue Mirage</h1>
-      <div className="paper mt-6 overflow-x-auto">
+      <p className="kicker mt-10">Cohort intelligence · Revenue Mirage</p>
+      <h1 className="mt-2 text-5xl font-medium">Where learners get stuck</h1>
+      <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <Tilt className="paper rounded-2xl p-5 md:col-span-2">
+          <div className="flex items-center justify-between"><p className="text-sm">Hints revealed per learner</p><Sample /></div>
+          <div className="mt-6 flex h-40 items-end gap-6">
+            {SAMPLE.map((s) => (
+              <div key={s.name} className="flex flex-1 flex-col items-center gap-2">
+                <span className="font-mono text-xs">{s.hints}</span>
+                <div className="w-full rounded-t-md bg-gradient-to-t from-teal/20 to-teal" style={{ height: `${Math.max(4, (s.hints / maxH) * 100)}%` }} />
+                <span className="text-[11px] text-muted-foreground">{s.name.replace("Learner ", "")}</span>
+              </div>
+            ))}
+          </div>
+        </Tilt>
+        <Tilt className="paper rounded-2xl p-5">
+          <div className="flex items-center justify-between"><p className="text-sm">Outcome mix</p><Sample /></div>
+          <ul className="mt-6 space-y-3 text-sm">
+            {[["Unassisted first try", 1, "var(--ok)"], ["Assisted", 2, "var(--teal)"], ["In progress", 1, "var(--warn)"]].map(([l, n, c]) => (
+              <li key={l as string}><div className="flex justify-between"><span>{l}</span><span className="font-mono">{n}/4</span></div>
+                <div className="mt-1 h-1.5 rounded-full bg-muted"><div className="h-full rounded-full" style={{ width: `${(Number(n) / 4) * 100}%`, background: c as string }} /></div></li>
+            ))}
+          </ul>
+        </Tilt>
+      </div>
+      <div className="paper mt-4 overflow-x-auto rounded-2xl">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3"><p className="text-sm">Learners</p><Sample /></div>
         <table className="w-full text-sm">
           <thead><tr className="text-left font-mono text-[11px] uppercase text-muted-foreground">
             {["Learner", "Prediction", "Hints", "Repair", "Outcome"].map((h) => <th key={h} className="px-4 py-3">{h}</th>)}</tr></thead>
           <tbody>{SAMPLE.map((r) => (
-            <tr key={r.name} className="border-t"><td className="px-4 py-3">{r.name}</td><td className="px-4 py-3">{r.prediction}</td>
+            <tr key={r.name} className="border-t border-border"><td className="px-4 py-3">{r.name}</td><td className="px-4 py-3">{r.prediction}</td>
               <td className="px-4 py-3 font-mono">{r.hints}</td><td className="px-4 py-3">{r.repair}</td><td className="px-4 py-3">{r.outcome}</td></tr>))}
           </tbody>
         </table>
       </div>
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <div className="paper p-5"><p className="kicker">Most common misconception (sample)</p><p className="mt-2 font-display text-xl">“DISTINCT removes duplicate orders.”</p></div>
-        <div className="paper p-5"><p className="kicker">Suggested intervention (sample)</p><p className="mt-2">Revisit row grain with a two-order collision example before assigning the transfer.</p></div>
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <Tilt className="paper rounded-2xl p-5"><div className="flex items-center justify-between"><p className="kicker">Most common misconception</p><Sample /></div><p className="mt-3 font-display text-2xl">“DISTINCT removes duplicate orders.”</p></Tilt>
+        <Tilt className="paper rounded-2xl p-5"><div className="flex items-center justify-between"><p className="kicker">Suggested intervention</p><Sample /></div><p className="mt-3">Revisit row grain with a two-order collision example before assigning the transfer.</p></Tilt>
       </div>
     </Page>
   );
