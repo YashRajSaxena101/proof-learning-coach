@@ -16,7 +16,7 @@ export function RepairStep() {
     setSel(id);
     const o = REPAIR_OPTIONS.find((x) => x.id === id)!;
     progressStore.set((s) => ({ ...s, repairAttempts: [...s.repairAttempts, id], repairSolved: s.repairSolved || o.correct }));
-    progressStore.log({ step: "repair", kind: "repair", detail: `${o.label} → ${money(evaluateRepair(id))}`, correct: o.correct });
+    progressStore.log({ step: "repair", kind: "repair", detail: `${o.label} → ${money(evaluateRepair(id))}`, correct: o.correct }, { activity: "repair", answer: id });
   };
   const collision = collidingTotals(ORDERS)[0];
   return (
@@ -95,7 +95,8 @@ export function TransferStep() {
     if (!Number.isFinite(n) || val.trim() === "") return;
     const correct = n === inventoryTrueTotal(WAREHOUSES);
     progressStore.set((s) => ({ ...s, transfer: { attempts: [...s.transfer.attempts, n], solved: s.transfer.solved || correct } }));
-    progressStore.log({ step: "transfer", kind: "transfer", detail: `Answered ${n} units`, correct, assisted: (p.hints.transfer ?? 0) > 0 || p.transfer.attempts.length > 0 });
+    progressStore.log({ step: "transfer", kind: "transfer", detail: `Answered ${n} units`, correct, assisted: (p.hints.transfer ?? 0) > 0 || p.transfer.attempts.length > 0 },
+      { activity: "transfer", answer: String(n) });
   };
   const o = outcome(p);
   return (
