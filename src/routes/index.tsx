@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { motion, useMotionValue, useScroll, useTransform, type MotionValue } from "motion/react";
 import { useRef } from "react";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ParticleField } from "@/components/fx/ParticleField";
 import { Springy, Tilt } from "@/components/fx/Tilt";
 import { progressStore } from "@/services/progress-store";
+import { useMotionPref } from "@/lib/motion-pref";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,11 +25,13 @@ export const Route = createFileRoute("/")({
 const enter = () => progressStore.set((p) => (p.events.length ? p : { ...p, current: "brief" }));
 
 function Home() {
+  const { allowed } = useMotionPref();
+  // Paused / reduced motion: separate static components, so no scroll listeners or bound values run.
   return (
     <>
       <Hero />
-      <NarrativeScene />
-      <Artwork />
+      {allowed ? <NarrativeScene /> : <StaticNarrative />}
+      {allowed ? <Artwork /> : <StaticArtwork />}
       <Loop />
       <FinalCta />
     </>
@@ -40,7 +43,7 @@ function Hero() {
     <section className="relative isolate overflow-hidden">
       <ParticleField className="pointer-events-none absolute inset-0 -z-10 opacity-90 md:left-[38%]" />
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_20%_50%,var(--background)_30%,transparent_70%)]" />
-      <div className="mx-auto grid min-h-[calc(100svh-56px)] max-w-6xl items-center gap-10 px-5 py-14 md:grid-cols-[1.25fr_1fr]">
+      <div className="mx-auto grid min-h-[calc(100svh-var(--header-h))] max-w-6xl items-center gap-10 px-5 py-14 md:grid-cols-[1.25fr_1fr]">
         <div>
           <motion.p className="kicker" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>AI learning coach · data reasoning</motion.p>
           <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.5 }}
@@ -89,7 +92,7 @@ function NarrativeScene() {
   const cap2 = useTransform(p, [0.32, 0.4, 0.6, 0.68], [0, 1, 1, 0]);
   return (
     <section ref={ref} className="relative h-[260vh]" aria-label="Story: from a polished report to the evidence">
-      <div className="sticky top-14 flex h-[calc(100svh-56px)] items-center overflow-hidden">
+      <div className="sticky top-[var(--header-h)] flex h-[calc(100svh-var(--header-h))] items-center overflow-hidden">
         <div className="mx-auto grid w-full max-w-6xl items-center gap-8 px-5 md:grid-cols-[1fr_1.4fr]">
           <div className="relative h-36 md:h-48">
             <Caption o={cap1} k="01 · The report" t="It looks polished. It looks finished." />
@@ -120,6 +123,57 @@ function NarrativeScene() {
     </section>
   );
 }
+const STORY = [
+  ["01 · The report", "It looks polished. It looks finished."],
+  ["02 · Underneath", "Every total is a path through rows you can't see."],
+] as const;
+function ReportCard() {
+  return (
+    <div className="paper glow-line rounded-2xl p-5">
+      <p className="font-mono text-[11px] text-muted-foreground">Revenue · reported</p>
+      <svg viewBox="0 0 300 140" className="mt-3 w-full" aria-hidden>
+        {[0, 1, 2, 3].map((i) => <line key={i} x1="0" x2="300" y1={20 + i * 35} y2={20 + i * 35} stroke="var(--border)" />)}
+        <rect x="60" y="85" width="50" height="35" rx="4" fill="var(--muted-foreground)" opacity="0.5" />
+        <rect x="180" y="20" width="50" height="100" rx="4" fill="var(--teal)" />
+      </svg>
+      <p className="font-mono text-xs text-warn">+100% · unverified</p>
+    </div>
+  );
+}
+/** Static, fully readable version of the story: no sticky scroller, no scroll-bound values. */
+function StaticNarrative() {
+  const one = useMotionValueConst(1);
+  return (
+    <section className="mx-auto max-w-6xl px-5 py-16" aria-label="Story: from a polished report to the evidence">
+      <div className="grid gap-6 md:grid-cols-3">
+        <div><p className="kicker">{STORY[0][0]}</p><p className="mt-3 font-display text-3xl leading-tight">{STORY[0][1]}</p><div className="mt-5"><ReportCard /></div></div>
+        <div><p className="kicker">{STORY[1][0]}</p><p className="mt-3 font-display text-3xl leading-tight">{STORY[1][1]}</p>
+          <svg viewBox="0 0 400 300" className="mt-5 w-full" aria-hidden><Network draw={one} /></svg></div>
+        <div><p className="kicker">03 · Your move</p><h2 className="mt-3 text-5xl font-medium leading-[0.95]">Follow the <em className="text-teal">evidence.</em></h2></div>
+      </div>
+    </section>
+  );
+}
+function useMotionValueConst(v: number) { return useMotionValue(v); }
+function StaticArtwork() {
+  return (
+    <section className="mx-auto max-w-7xl px-5 py-16">
+      <ArtHeading />
+      <img src="/images/proof-revenue-mirage.webp" width={1600} height={900} loading="lazy" decoding="async" alt={ART_ALT}
+        className="aspect-[16/9] w-full rounded-3xl border border-border object-cover" />
+    </section>
+  );
+}
+const ART_ALT = "Illustration: a pleased executive admires a glowing rising chart, while on the other side tangled duplicate data streams converge on an amber warning.";
+function ArtHeading() {
+  return (
+    <div className="mb-8 grid gap-6 md:grid-cols-2 md:items-end">
+      <h2 className="text-4xl font-medium leading-[0.95] md:text-6xl">Confidence is not <em className="text-teal">evidence.</em></h2>
+      <p className="max-w-md text-muted-foreground md:justify-self-end">On one side, a chart that tells a great story. On the other, the rows that produced it. Proof trains you to look at both before anyone signs a budget.</p>
+    </div>
+  );
+}
+
 function Caption({ o, k, t }: { o: MotionValue<number>; k: string; t: string }) {
   return (
     <motion.div style={{ opacity: o }} className="absolute inset-0">
@@ -158,13 +212,10 @@ function Artwork() {
   const y = useTransform(p, [0, 1], [40, -40]);
   return (
     <section ref={ref} className="mx-auto max-w-7xl px-5 py-20 md:py-28">
-      <div className="mb-8 grid gap-6 md:grid-cols-2 md:items-end">
-        <h2 className="text-4xl font-medium leading-[0.95] md:text-6xl">Confidence is not <em className="text-teal">evidence.</em></h2>
-        <p className="max-w-md text-muted-foreground md:justify-self-end">On one side, a chart that tells a great story. On the other, the rows that produced it. Proof trains you to look at both before anyone signs a budget.</p>
-      </div>
+      <ArtHeading />
       <motion.div style={{ clipPath: clip }} className="overflow-hidden rounded-3xl border border-border">
         <motion.img style={{ scale, y }} src="/images/proof-revenue-mirage.webp" width={1600} height={900} loading="lazy" decoding="async"
-          alt="Illustration: a pleased executive admires a glowing rising chart, while on the other side tangled duplicate data streams converge on an amber warning."
+          alt={ART_ALT}
           className="aspect-[16/9] w-full object-cover" />
       </motion.div>
     </section>

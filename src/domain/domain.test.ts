@@ -99,3 +99,15 @@ describe("Adaptive learning rules", () => {
     expect(r.message).toMatch(/not a verified assessment/);
   });
 });
+
+import { completedSteps as _cs, emptyProgress as _ep, STEPS as _S } from "./learning";
+describe("display completion", () => {
+  it("fresh progress shows 0 of 8", () => { expect(_cs(_ep())).toEqual([]); });
+  it("solved transfer counts even when not in completed, giving 8/8 in step order", () => {
+    const p = { ..._ep(), completed: ["teach", "brief", "predict", "explore", "join", "trace", "repair", "brief"] as typeof _S[number]["id"][], transfer: { attempts: [50], solved: true } };
+    const before = JSON.stringify(p);
+    expect(_cs(p)).toEqual(_S.map((s) => s.id));
+    expect(JSON.stringify(p)).toBe(before);
+  });
+  it("unsolved transfer is not counted", () => { expect(_cs({ ..._ep(), completed: ["brief"] })).toEqual(["brief"]); });
+});

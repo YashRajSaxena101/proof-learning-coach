@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { Pause, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase";
@@ -47,8 +48,16 @@ function MotionToggle() {
 export function SiteHeader() {
   const session = useSession();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const ref = useRef<HTMLElement>(null);
+  // Publish the real header height (it wraps to two rows on mobile) for sticky content below it.
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const set = () => document.documentElement.style.setProperty("--header-h", `${el.offsetHeight}px`);
+    set(); const ro = new ResizeObserver(set); ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+    <header ref={ref} className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-5 py-2.5">
         <Link to="/" className="font-display text-2xl font-semibold tracking-tight" aria-label="Proof home">Proof<span className="text-teal">.</span></Link>
         <nav aria-label="Main" className="order-3 -mx-2 flex w-full gap-0.5 overflow-x-auto text-sm sm:order-none sm:mx-0 sm:w-auto">

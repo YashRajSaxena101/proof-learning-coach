@@ -1,3 +1,4 @@
+import { createContext, useContext } from "react";
 import { motion } from "motion/react";
 import { ParticleField } from "@/components/fx/ParticleField";
 import { useMotionPref } from "@/lib/motion-pref";
@@ -13,7 +14,6 @@ export function SlideVisual({ index }: { index: number }) {
 function MotionGate({ allowed, children }: { allowed: boolean; children: React.ReactNode }) {
   return allowed ? <>{children}</> : <MotionOffContext.Provider value>{children}</MotionOffContext.Provider>;
 }
-import { createContext, useContext } from "react";
 const MotionOffContext = createContext(false);
 function SlideArt({ index }: { index: number }) {
   const off = useContext(MotionOffContext);
