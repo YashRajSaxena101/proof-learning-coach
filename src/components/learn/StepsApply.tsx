@@ -5,7 +5,7 @@ import { REPAIR_OPTIONS, evaluateRepair, collidingTotals, ORDERS, WAREHOUSES, SU
 import { TEACH_CRITERIA, outcome } from "@/domain/learning";
 import { progressStore, useProgress } from "@/services/progress-store";
 import { scriptedCoach, type CoachReply } from "@/services/coach";
-import { Callout, StepShell, money } from "./shared";
+import { Callout, HintPanel, StepShell, money } from "./shared";
 import { cn } from "@/lib/utils";
 
 export function RepairStep() {
@@ -133,10 +133,7 @@ export function TransferStep() {
           </Callout>
         )}
       </div>
-      <TransferHints />
+      <HintPanel step="transfer" />
     </section>
   );
 }
-
-import { HintPanel } from "./shared";
-function TransferHints() { return <HintPanel step="transfer" />; }

@@ -31,7 +31,7 @@ export function StepShell({ id, kicker, title, children, canContinue = true, onC
       <div className="mt-6 space-y-6">{children}</div>
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Button variant="teal" size="lg" disabled={!canContinue}
-          onClick={() => { onContinue?.(); goTo(next ?? "transfer", id); if (!next) progressStore.set((p) => ({ ...p })); }}>
+          onClick={() => { onContinue?.(); goTo(next ?? id, id); }}>
           {continueLabel ?? (next ? "Continue" : "Finish")}
         </Button>
         {!canContinue && <span className="text-sm text-muted-foreground">Complete this step to continue.</span>}
