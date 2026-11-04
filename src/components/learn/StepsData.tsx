@@ -3,7 +3,7 @@ import { Pause, Play, RotateCcw, SkipForward, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ORDERS, LINE_ITEMS, joinOrders, faultyJoinedTotal, contributions, PREVIOUS_MONTH_REVENUE, growthPct } from "@/domain/fanout";
 import { progressStore } from "@/services/progress-store";
-import { Callout, StepShell, money } from "./shared";
+import { Callout, OrderDot, StepShell, money } from "./shared";
 import { cn } from "@/lib/utils";
 
 const ROWS = joinOrders(ORDERS, LINE_ITEMS);
