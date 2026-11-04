@@ -36,7 +36,7 @@ function Learn() {
   const reachable = (id: StepId) => id === p.current || p.completed.includes(id) || STEPS.findIndex((s) => s.id === id) <= p.completed.length;
   return (
     <Page>
-      <div className="grid gap-10 lg:grid-cols-[220px_1fr]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[220px_1fr] lg:gap-10">
         <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start">
           <p className="kicker">Progress map</p>
           <ol className="mt-3 flex gap-1 overflow-x-auto lg:flex-col">
