@@ -40,8 +40,8 @@ function Learn() {
   return (
     <Page>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[220px_1fr] lg:gap-10">
-        <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start">
-          <p className="kicker">Progress map</p>
+        <aside className="paper min-w-0 rounded-2xl p-4 lg:sticky lg:top-20 lg:self-start">
+          <p className="kicker">Investigation · progress</p>
           <ol className="mt-3 flex gap-1 overflow-x-auto lg:flex-col">
             {STEPS.map((s, i) => {
               const done = p.completed.includes(s.id) || (s.id === "transfer" && p.transfer.solved);
@@ -49,9 +49,9 @@ function Learn() {
                 <li key={s.id}>
                   <button disabled={!reachable(s.id)} onClick={() => progressStore.set((x) => ({ ...x, current: s.id }))}
                     aria-current={p.current === s.id ? "step" : undefined}
-                    className={cn("flex w-full items-center gap-2 whitespace-nowrap rounded-md px-2 py-1.5 text-left text-sm transition disabled:opacity-40",
+                    className={cn("flex w-full items-center gap-2 whitespace-nowrap rounded-full px-2 py-1.5 text-left text-sm transition disabled:opacity-40",
                       p.current === s.id ? "bg-accent text-accent-foreground" : "hover:bg-muted")}>
-                    <span className={cn("grid size-5 place-items-center rounded-full border font-mono text-[10px]", done && "border-ok bg-ok text-primary-foreground")}>
+                    <span className={cn("grid size-5 place-items-center rounded-full border font-mono text-[10px]", done && "border-teal bg-teal text-ink")}>
                       {done ? <Check className="size-3" /> : i + 1}
                     </span>{s.title}
                   </button>

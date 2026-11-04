@@ -6,7 +6,7 @@ const Tag = ({ k }: { k: "Built" | "Roadmap" }) => (
 
 export const SLIDES: Slide[] = [
   { kicker: "01 · The problem", title: "A plausible number, a wrong decision.",
-    body: <p className="text-2xl md:text-3xl leading-snug max-w-4xl">A fictional CFO sees revenue “double” from $500 to $1,000 and prepares to double marketing spend. The real number is flat. One JOIN caused it.</p>,
+    body: <p className="text-2xl md:text-3xl leading-snug max-w-4xl">A fictional CFO sees revenue “double” from $500 to $1,000 and prepares to double marketing spend. Is the number real? The learner has to find out.</p>,
     notes: "Open with the stakes. This is a fictional scenario, but the mistake — join fan-out — is a well-known class of analytics error." },
   { kicker: "02 · The learning gap", title: "Tutorials teach syntax. Jobs test judgment.",
     body: <ul className="space-y-3 text-2xl max-w-4xl list-disc pl-6"><li>Learners can write a JOIN but not notice when it changes row grain.</li><li>Completion badges don't show whether help was needed.</li><li>Confident misconceptions go unaddressed.</li></ul>,

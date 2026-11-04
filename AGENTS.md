@@ -16,3 +16,5 @@
 - Use the user's external Supabase project, never Lovable Cloud.
 - Supabase client uses the external project's publishable key (`src/integrations/supabase.ts`); RLS enforces ownership.
 - AI teach-back evaluation runs only in the user's deployed Supabase Edge Function `proof-coach` (called via `src/services/coach.ts` after inserting a `teach-back` attempt); it alone writes `learning_evaluations`. The client validates its response and never records fallback or client results as AI evaluations.
+- Visual system is dark-only via tokens in `src/styles.css`; decorative motion (canvas particles, tilt, scroll scenes) must respect `useMotionPref()` (`src/lib/motion-pref.ts`) so OS reduced-motion and the header pause toggle both stop it.
+- The site header and route-transition wrapper live in `__root.tsx` (header hidden on /present); only route content is keyed per pathname so stores/auth never remount.

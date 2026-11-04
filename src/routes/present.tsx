@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Maximize, StickyNote, Timer, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "motion/react";
 import { SLIDES } from "@/components/present/slides";
+import { SlideVisual } from "@/components/present/visuals";
 
 export const Route = createFileRoute("/present")({
   head: () => ({
@@ -46,8 +48,8 @@ function Present() {
   useEffect(() => { document.title = `${i + 1}/${SLIDES.length} — ${SLIDES[i]!.title}`; }, [i]);
   const s = SLIDES[i]!;
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex items-center gap-2 border-b px-4 py-2 text-sm">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-background">
+      <div className="relative z-10 flex items-center gap-2 border-b border-border/60 px-4 py-2 text-sm backdrop-blur">
         <Link to="/" className="font-display text-lg font-semibold">Proof<span className="text-teal">.</span></Link>
         <span className="ml-3 whitespace-nowrap font-mono text-xs text-muted-foreground">{i + 1} / {SLIDES.length}</span>
         <div className="ml-auto flex gap-1">
@@ -56,11 +58,15 @@ function Present() {
           <Button size="sm" variant="ghost" asChild><Link to="/"><X /> Exit</Link></Button>
         </div>
       </div>
-      <main key={i} className="flex flex-1 flex-col justify-center px-8 md:px-20 py-12 animate-rise"
+      <p className="relative z-10 border-b border-border/40 px-4 py-1.5 text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Presentation preview · does not record learning evidence</p>
+      <AnimatePresence mode="wait">
+      <motion.section key={i} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 grid flex-1 items-center gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr] md:px-16 lg:px-20"
         onTouchStart={(e) => ((e.currentTarget as HTMLElement).dataset["x"] = String(e.touches[0]!.clientX))}
         onTouchEnd={(e) => { const x0 = Number((e.currentTarget as HTMLElement).dataset["x"]); const dx = e.changedTouches[0]!.clientX - x0; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); }}>
+        <div className="min-w-0">
         <p className="kicker text-sm">{s.kicker}</p>
-        <h1 className="mt-4 max-w-5xl text-5xl md:text-7xl font-medium leading-[1.02]">{s.title}</h1>
+        <h1 className="mt-4 max-w-5xl text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[0.95] tracking-[-0.03em]">{s.title}</h1>
         <div className="mt-10">{s.body}</div>
         {s.demoCue && (
           <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -69,9 +75,12 @@ function Present() {
             <Button variant="outline" size="lg" asChild><Link to="/learn">Open simulation</Link></Button>
           </div>
         )}
-      </main>
-      {notes && <div className="border-t bg-ink px-8 py-4 text-ink-foreground"><p className="kicker">Speaker notes</p><p className="mt-1 max-w-4xl">{s.notes}</p></div>}
-      <div className="flex items-center justify-between border-t px-4 py-2">
+        </div>
+        <SlideVisual index={i} />
+      </motion.section>
+      </AnimatePresence>
+      {notes && <div className="relative z-10 border-t border-border bg-ink px-8 py-4 text-ink-foreground"><p className="kicker">Speaker notes</p><p className="mt-1 max-w-4xl">{s.notes}</p></div>}
+      <div className="relative z-10 flex items-center justify-between border-t border-border/60 px-4 py-2">
         <Button variant="ghost" onClick={() => go(-1)} disabled={i === 0}><ChevronLeft /> Prev</Button>
         <div className="flex gap-1.5">{SLIDES.map((_, k) => <button key={k} aria-label={`Slide ${k + 1}`} onClick={() => setI(k)} className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-teal" : "w-3 bg-border"}`} />)}</div>
         <Button variant="ghost" onClick={() => go(1)} disabled={i === SLIDES.length - 1}>Next <ChevronRight /></Button>

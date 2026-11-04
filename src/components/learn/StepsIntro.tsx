@@ -12,7 +12,17 @@ export function BriefStep() {
   return (
     <StepShell id="brief" kicker="Scenario · Northstar Supply (fictional)" title="The Revenue Mirage"
       onContinue={() => progressStore.log({ step: "brief", kind: "view", detail: "Read CFO brief" })}>
-      <div className="paper p-6 md:p-8 max-w-3xl">
+      <div className="paper glow-line max-w-3xl rounded-2xl p-5">
+        <div className="flex items-center justify-between"><p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Revenue dashboard · Northstar</p><span className="rounded-full border border-warn/40 bg-warn-soft px-2 py-0.5 font-mono text-[10px] text-warn">UNVERIFIED</span></div>
+        <svg viewBox="0 0 400 120" className="mt-4 h-28 w-full" role="img" aria-label="Reported chart: previous month $500, this month $1,000">
+          {[0, 1, 2].map((k) => <line key={k} x1="0" x2="400" y1={20 + k * 40} y2={20 + k * 40} stroke="var(--border)" strokeDasharray="2 4" />)}
+          <rect x="90" y="60" width="70" height="40" rx="5" fill="var(--muted-foreground)" opacity="0.45" />
+          <rect x="240" y="20" width="70" height="80" rx="5" fill="var(--teal)" />
+          <text x="125" y="115" textAnchor="middle" fontSize="10" fill="var(--muted-foreground)">previous</text>
+          <text x="275" y="115" textAnchor="middle" fontSize="10" fill="var(--muted-foreground)">reported</text>
+        </svg>
+      </div>
+      <div className="paper p-6 md:p-8 max-w-3xl rounded-2xl">
         <p className="font-mono text-xs text-muted-foreground">From: Dana Ruiz, CFO · To: Analytics · Subject: Marketing budget</p>
         <p className="mt-4 font-display text-xl leading-relaxed">
           “The dashboard says revenue jumped from {money(PREVIOUS_MONTH_REVENUE)} to {money(dash)} — <strong>+100%</strong> month over month.
