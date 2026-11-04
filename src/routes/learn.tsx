@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { STEPS, type StepId } from "@/domain/learning";
 import { progressStore, useProgress } from "@/services/progress-store";
 import { useSyncStatus } from "@/services/remote-sync";
+import { useLocalPersistence } from "@/services/progress-store";
 import { BriefStep, PredictStep } from "@/components/learn/StepsIntro";
 import { ExploreStep, JoinStep, TraceStep } from "@/components/learn/StepsData";
 import { RepairStep, TeachStep, TransferStep } from "@/components/learn/StepsApply";
@@ -32,7 +33,9 @@ const VIEWS: Record<StepId, () => React.ReactElement> = {
 function Learn() {
   const p = useProgress();
   const View = VIEWS[p.current];
-  const mode = useSyncStatus().kind === "local" ? "local" : "account";
+  const sync = useSyncStatus();
+  const localPersist = useLocalPersistence();
+  const mode = sync.kind === "local" ? "local" : "account";
   const reachable = (id: StepId) => id === p.current || p.completed.includes(id) || STEPS.findIndex((s) => s.id === id) <= p.completed.length;
   return (
     <Page>
@@ -57,6 +60,8 @@ function Learn() {
             })}
           </ol>
           <div className="mt-6 rounded-md border border-border p-3 text-xs text-muted-foreground">
+            {sync.kind === "error" && <p role="alert" className="mb-2 rounded bg-warn-soft p-2 text-destructive">{sync.message}</p>}
+            {mode === "local" && localPersist === "memory-only" && <p role="alert" className="mb-2 rounded bg-warn-soft p-2 text-destructive">This browser blocked saving — progress is in memory only and will be lost on reload.</p>}
             {mode === "account" ? "Progress syncs to your account." : "Demo progress is saved in this browser only. Sign in to sync it to an account."}
             <Button size="sm" variant="ghost" className="mt-2 w-full" onClick={() => { if (confirm("Reset all simulation progress in this browser?")) progressStore.reset(); }}>
               <RotateCcw /> Reset demo

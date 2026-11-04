@@ -19,7 +19,7 @@ export const Route = createFileRoute("/evidence")({
   component: Evidence,
 });
 
-const LABEL = { not_started: "Not started", in_progress: "In progress", assisted_success: "Assisted success", demonstrated: "Demonstrated in this exercise" };
+const LABEL = { not_started: "Not started", in_progress: "In progress", transfer_correct_assisted: "Transfer correct · assisted", transfer_correct_unassisted: "Transfer correct · unassisted first try" };
 
 function Evidence() {
   const p = useProgress();

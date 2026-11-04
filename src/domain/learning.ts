@@ -45,15 +45,22 @@ export const emptyProgress = (): Progress => ({
   transfer: { attempts: [], solved: false }, events: [],
 });
 
-export type Outcome = "not_started" | "in_progress" | "assisted_success" | "demonstrated";
-/** "Demonstrated in this exercise" requires an unassisted, first-try transfer plus a solved repair and a passing teach-back. */
+/**
+ * Outcome is based only on the locally checkable transfer exercise. Teach-back is never verified
+ * locally (only the live AI coach can verify it), so no outcome here claims mastery.
+ */
+export type Outcome = "not_started" | "in_progress" | "transfer_correct_assisted" | "transfer_correct_unassisted";
 export function outcome(p: Progress): Outcome {
   if (p.events.length === 0) return "not_started";
-  if (!p.transfer.solved || !p.repairSolved) return "in_progress";
-  const transferClean = p.transfer.attempts.length === 1 && !(p.hints.transfer ?? 0);
-  const teachPass = (p.teach?.met.length ?? 0) >= TEACH_PASS;
-  return transferClean && teachPass ? "demonstrated" : "assisted_success";
+  if (!p.transfer.solved) return "in_progress";
+  return transferUnassisted(p) ? "transfer_correct_unassisted" : "transfer_correct_assisted";
 }
+/** Unassisted transfer = correct on the first attempt with zero transfer hints. Earlier-step hints don't change this, but are reported separately. */
+export const transferUnassisted = (p: Progress) =>
+  p.transfer.solved && p.transfer.attempts.length === 1 && !(p.hints.transfer ?? 0);
+/** Hints used in any step before transfer. */
+export const earlierHints = (p: Progress) =>
+  Object.entries(p.hints).filter(([k]) => k !== "transfer").reduce((a, [, v]) => a + (v ?? 0), 0);
 
 export const HINTS: Record<StepId, [string, string, string]> = {
   brief: ["Ask: what does one row in the query represent?", "The dashboard joins orders to line items.", "Joins can repeat parent rows once per child row."],
@@ -72,8 +79,14 @@ export const TEACH_CRITERIA: { id: string; label: string; patterns: RegExp[] }[]
   { id: "fix", label: "Gives a valid fix", patterns: [/sum\(?\s*(li\.)?amount/i, /line amount/i, /without (the )?join/i, /order (grain|level)/i, /aggregate (first|before)/i, /from orders/i] },
   { id: "distinct", label: "Explains why DISTINCT fails", patterns: [/distinct/i, /same (value|amount|total)/i, /\$?120/] },
 ];
-export const TEACH_PASS = 3;
+/** The three core ideas a valid explanation must contain. DISTINCT is a bonus and cannot substitute for any of them. */
+export const CORE_CRITERIA = ["duplication", "grain", "fix"] as const;
+export const hasCoreCriteria = (met: string[]) => CORE_CRITERIA.every((c) => met.includes(c));
+const NEGATED_FIX = /\b(do not|don't|dont|never|not|avoid|shouldn't|should not|stop)\b[^.]{0,40}(sum|line amount|aggregate|order (grain|level)|from orders)/i;
+export const hasNegatedFix = (text: string) => NEGATED_FIX.test(text);
 
+/** Keyword checklist only — cannot understand meaning. A negated fix ("do not sum line amounts") is never counted. */
 export function scoreTeachBack(text: string): string[] {
-  return TEACH_CRITERIA.filter((c) => c.patterns.some((p) => p.test(text))).map((c) => c.id);
+  const met = TEACH_CRITERIA.filter((c) => c.patterns.some((p) => p.test(text))).map((c) => c.id);
+  return hasNegatedFix(text) ? met.filter((m) => m !== "fix") : met;
 }
