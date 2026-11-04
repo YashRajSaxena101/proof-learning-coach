@@ -49,10 +49,10 @@ function Present() {
     <div className="flex min-h-screen flex-col bg-background">
       <div className="flex items-center gap-2 border-b px-4 py-2 text-sm">
         <Link to="/" className="font-display text-lg font-semibold">Proof<span className="text-teal">.</span></Link>
-        <span className="ml-3 font-mono text-xs text-muted-foreground">{i + 1} / {SLIDES.length}</span>
+        <span className="ml-3 whitespace-nowrap font-mono text-xs text-muted-foreground">{i + 1} / {SLIDES.length}</span>
         <div className="ml-auto flex gap-1">
-          <Button size="sm" variant={notes ? "default" : "ghost"} onClick={() => setNotes((n) => !n)} aria-pressed={notes}><StickyNote /> Notes (N)</Button>
-          <Button size="sm" variant="ghost" onClick={() => document.documentElement.requestFullscreen?.().catch(() => {})}><Maximize /> Full (F)</Button>
+          <Button size="sm" variant={notes ? "default" : "ghost"} onClick={() => setNotes((n) => !n)} aria-pressed={notes}><StickyNote /><span className="hidden sm:inline">Notes (N)</span></Button>
+          <Button size="sm" variant="ghost" onClick={() => document.documentElement.requestFullscreen?.().catch(() => {})}><Maximize /><span className="hidden sm:inline">Full (F)</span></Button>
           <Button size="sm" variant="ghost" asChild><Link to="/"><X /> Exit</Link></Button>
         </div>
       </div>

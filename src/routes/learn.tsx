@@ -4,6 +4,7 @@ import { Page } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { STEPS, type StepId } from "@/domain/learning";
 import { progressStore, useProgress } from "@/services/progress-store";
+import { useSyncStatus } from "@/services/remote-sync";
 import { BriefStep, PredictStep } from "@/components/learn/StepsIntro";
 import { ExploreStep, JoinStep, TraceStep } from "@/components/learn/StepsData";
 import { RepairStep, TeachStep, TransferStep } from "@/components/learn/StepsApply";
@@ -31,11 +32,12 @@ const VIEWS: Record<StepId, () => React.ReactElement> = {
 function Learn() {
   const p = useProgress();
   const View = VIEWS[p.current];
+  const mode = useSyncStatus().kind === "local" ? "local" : "account";
   const reachable = (id: StepId) => id === p.current || p.completed.includes(id) || STEPS.findIndex((s) => s.id === id) <= p.completed.length;
   return (
     <Page>
       <div className="grid gap-10 lg:grid-cols-[220px_1fr]">
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start">
           <p className="kicker">Progress map</p>
           <ol className="mt-3 flex gap-1 overflow-x-auto lg:flex-col">
             {STEPS.map((s, i) => {
@@ -55,13 +57,13 @@ function Learn() {
             })}
           </ol>
           <div className="mt-6 rounded-md border border-border p-3 text-xs text-muted-foreground">
-            Progress is saved in this browser only (localStorage). No account or server yet.
+            {mode === "account" ? "Progress syncs to your account." : "Demo progress is saved in this browser only. Sign in to sync it to an account."}
             <Button size="sm" variant="ghost" className="mt-2 w-full" onClick={() => { if (confirm("Reset all simulation progress in this browser?")) progressStore.reset(); }}>
               <RotateCcw /> Reset demo
             </Button>
           </div>
         </aside>
-        <div key={p.current}><View /></div>
+        <div key={p.current} className="min-w-0"><View /></div>
       </div>
     </Page>
   );
