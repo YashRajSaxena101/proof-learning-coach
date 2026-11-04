@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as EvidenceRouteImport } from './routes/evidence'
 import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as LearnRouteImport } from './routes/learn'
@@ -18,6 +19,11 @@ import { Route as PresentRouteImport } from './routes/present'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EvidenceRoute = EvidenceRouteImport.update({
@@ -43,6 +49,7 @@ const PresentRoute = PresentRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/evidence': typeof EvidenceRoute
   '/instructor': typeof InstructorRoute
   '/learn': typeof LearnRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/evidence': typeof EvidenceRoute
   '/instructor': typeof InstructorRoute
   '/learn': typeof LearnRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/evidence': typeof EvidenceRoute
   '/instructor': typeof InstructorRoute
   '/learn': typeof LearnRoute
@@ -65,14 +74,22 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/evidence' | '/instructor' | '/learn' | '/present'
+  fullPaths: '/' | '/auth' | '/evidence' | '/instructor' | '/learn' | '/present'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/evidence' | '/instructor' | '/learn' | '/present'
-  id: '__root__' | '/' | '/evidence' | '/instructor' | '/learn' | '/present'
+  to: '/' | '/auth' | '/evidence' | '/instructor' | '/learn' | '/present'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/evidence'
+    | '/instructor'
+    | '/learn'
+    | '/present'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   EvidenceRoute: typeof EvidenceRoute
   InstructorRoute: typeof InstructorRoute
   LearnRoute: typeof LearnRoute
@@ -86,6 +103,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/evidence': {
@@ -121,6 +145,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   EvidenceRoute: EvidenceRoute,
   InstructorRoute: InstructorRoute,
   LearnRoute: LearnRoute,

@@ -45,7 +45,8 @@ export function PredictStep() {
     const correct = CHOICES.find((c) => c.id === choice)!.correct;
     const branch = predictionBranch(correct, conf);
     progressStore.set((s) => ({ ...s, prediction: { choice, confidence: conf, correct, branch } }));
-    progressStore.log({ step: "predict", kind: "answer", detail: `Predicted ${money(Number(choice))} (${conf} confidence)`, correct, confidence: conf });
+    progressStore.log({ step: "predict", kind: "answer", detail: `Predicted ${money(Number(choice))} (${conf} confidence)`, correct, confidence: conf },
+      { activity: "predict", answer: choice, confidence: conf });
   };
   return (
     <StepShell id="predict" kicker="Commit before you look" title="What is true revenue this month?" canContinue={!!done}>

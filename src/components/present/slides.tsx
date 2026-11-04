@@ -13,7 +13,7 @@ export const SLIDES: Slide[] = [
     notes: "Frame this as a hypothesis we want to validate, not a measured finding." },
   { kicker: "03 · The Proof experience", title: "Predict → inspect → trace → repair → teach → transfer.",
     body: <p className="text-2xl max-w-4xl">Each step produces evidence. Hints are tiered and recorded. Assisted success is never labeled mastery.</p>,
-    notes: "Walk the eight-step progress map." },
+    notes: "Walk the eight-step progress map. Mention the Looker card: a documented product approach to the same problem, not a customer incident." },
   { kicker: "04 · Live demo", title: "The Revenue Mirage", demoCue: true,
     body: <ol className="space-y-2 text-xl max-w-4xl list-decimal pl-6"><li>Predict $500 with high confidence</li><li>Click O101 → two line items</li><li>Play the join: 4 orders → 8 rows</li><li>Click $1,000 to trace duplicates</li><li>Try DISTINCT → $380, see why</li><li>Inventory transfer: 50 units</li></ol>,
     notes: "90-second demo. Switch to /learn. Keep it moving: one action per beat. Press T to start the timer." },
@@ -21,8 +21,17 @@ export const SLIDES: Slide[] = [
     body: <div className="grid gap-4 md:grid-cols-3 text-lg"><div className="paper p-5"><Tag k="Built" /><p className="mt-3">High-confidence wrong → misconception probe</p></div><div className="paper p-5"><Tag k="Built" /><p className="mt-3">Low-confidence wrong → prerequisite scaffold</p></div><div className="paper p-5"><Tag k="Built" /><p className="mt-3">3-level hints, recorded as assistance</p></div></div>,
     notes: "All three branches are implemented with deterministic rules and unit tests." },
   { kicker: "06 · Architecture", title: "What's built vs. what's next.",
-    body: <div className="grid gap-3 md:grid-cols-2 text-lg"><p><Tag k="Built" /> Pure calculation + learning-rule modules, unit-tested</p><p><Tag k="Built" /> Browser-only progress (localStorage) behind a repository interface</p><p><Tag k="Built" /> Rule-based scripted colleague (not AI)</p><p><Tag k="Roadmap" /> Server-side AI teaching coach</p><p><Tag k="Roadmap" /> Supabase persistence + auth</p><p><Tag k="Roadmap" /> Real instructor dashboard</p></div>,
-    notes: "Be explicit: no live AI, no backend connected today. The interfaces are ready for both." },
+    body: <div className="grid gap-3 text-base md:grid-cols-2 md:text-lg">
+      <p><Tag k="Built" /> Pure calculation + learning-rule modules with unit tests</p>
+      <p><Tag k="Built" /> Instant browser-only demo (localStorage)</p>
+      <p><Tag k="Built" /> Email/password accounts; sessions sync and resume (owner-only access rules)</p>
+      <p><Tag k="Built" /> Every answer saved as a permanent attempt record</p>
+      <p><Tag k="Built" /> Server-side AI teach-back evaluation; keyword rubric labeled as fallback</p>
+      <p><Tag k="Roadmap" /> Saving AI evaluations needs a server key (not yet configured)</p>
+      <p><Tag k="Roadmap" /> Organization roles + real instructor dashboard</p>
+      <p><Tag k="Roadmap" /> More scenarios beyond join fan-out</p>
+    </div>,
+    notes: "Be precise. AI evaluation runs on the server only for signed-in users and is shown, but it is not stored until the server key for evaluations is added. Instructor view is sample data. Mastery in the demo still uses the curated rubric." },
   { kicker: "07 · Validation plan", title: "A pilot we'd like to run.",
     body: <ul className="space-y-3 text-2xl max-w-4xl list-disc pl-6"><li>Small cohort of student volunteers</li><li>Measure unassisted transfer success, before vs. after</li><li>Compare to a reading-only control</li><li>No results yet — we haven't run it</li></ul>,
     notes: "We have no metrics. Say so plainly." },
