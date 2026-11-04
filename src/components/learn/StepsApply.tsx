@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { REPAIR_OPTIONS, evaluateRepair, collidingTotals, ORDERS, WAREHOUSES, SUPPLIER_LINKS, inventoryTrueTotal, type RepairId } from "@/domain/fanout";
-import { TEACH_CRITERIA, outcome, type Confidence } from "@/domain/learning";
+import { TEACH_CRITERIA, earlierHints, outcome, type Confidence } from "@/domain/learning";
 import { progressStore, useProgress } from "@/services/progress-store";
 import { curatedFeedback, type CuratedReply } from "@/domain/curated-feedback";
 import { coachMet, type CoachResponse } from "@/domain/evaluation";
@@ -63,7 +63,7 @@ export function TeachStep() {
     const r = curatedFeedback(text);
     setCurated(r);
     progressStore.set((s) => ({ ...s, teach: { text, met: r.met } }));
-    progressStore.log({ step: "teach", kind: "teach", detail: `Curated rubric (not AI): ${r.met.length}/4 criteria`, correct: r.passed, confidence: conf });
+    progressStore.log({ step: "teach", kind: "teach", detail: `Provisional keyword checklist (not AI, not verified): ${r.met.length}/4 keywords`, confidence: conf });
     if (session) {
       const a = await insertAttempt({ activity: "teach", answer: text, confidence: conf, hintsUsed: p.hints.teach ?? 0 }, "teach-back");
       if ("error" in a) setAi({ ok: false, message: `Your answer wasn't saved, so it couldn't be sent to the AI coach: ${a.error}` });
@@ -105,9 +105,13 @@ export function TeachStep() {
       ) : <Callout tone="warn" title="AI coach unavailable — curated fallback shown below">{ai.message} The fallback is not recorded as an AI evaluation.</Callout>)}
       {curated && (
         <div className="max-w-3xl space-y-3">
-          <p className="kicker">Curated feedback · keyword rubric fallback (not AI)</p>
-          <Callout tone={curated.passed ? "ok" : "info"} title="Rubric check">{curated.message}</Callout>
+          <p className="kicker">Provisional checklist · keyword fallback (not AI, not verified)</p>
+          <Callout tone="info" title="Checklist suggestions">
+            {curated.message}
+            {curated.suggestions.length > 0 && <ul className="mt-2 list-disc pl-5">{curated.suggestions.map((s) => <li key={s}>{s}</li>)}</ul>}
+          </Callout>
           <CriteriaList met={curated.met} />
+          <p className="text-xs text-muted-foreground">Teach-back status: <strong>not verified</strong>{session ? " — awaiting live AI coach." : " — sign in for live AI verification."}</p>
         </div>
       )}
     </StepShell>
@@ -164,10 +168,12 @@ export function TransferStep() {
           <Callout tone="warn" title={`${last} isn't right.`}>{last === 100 ? "That's the duplicated report figure. Each warehouse appears once per supplier." : "Check how many rows each warehouse produces after the join."}</Callout>
         )}
         {p.transfer.solved && (
-          <Callout tone="ok" title={o === "demonstrated" ? "Demonstrated in this exercise" : "Assisted success — not yet demonstrated"}>
-            {o === "demonstrated"
-              ? "Correct on the first try with no hints, after a solid teach-back. That's evidence for this exercise — not a permanent mastery claim."
-              : "You reached 50 units, but with hints, extra attempts, or an incomplete teach-back. Proof records this honestly as assisted success; try a fresh transfer later to demonstrate it independently."}
+          <Callout tone="ok" title={o === "transfer_correct_unassisted" ? "Correct on this exercise — transfer unassisted, first try" : "Correct on this exercise — with help on the transfer"}>
+            {o === "transfer_correct_unassisted"
+              ? "You solved the inventory transfer on your first try without transfer hints."
+              : `You reached 50 units after ${p.transfer.attempts.length} attempt(s) and ${p.hints.transfer ?? 0} transfer hint(s). That's assisted, not unassisted.`}
+            {earlierHints(p) > 0 && <p className="mt-2">You used {earlierHints(p)} hint(s) earlier in the session, so the session overall was assisted.</p>}
+            <p className="mt-2 text-xs">Teach-back is verified only by the live AI coach; the checklist doesn't count. This is a result for this exercise, not a mastery claim.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button asChild size="sm"><Link to="/evidence">View learning evidence</Link></Button>
             </div>
