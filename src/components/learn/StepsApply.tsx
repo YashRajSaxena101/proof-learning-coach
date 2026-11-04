@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { REPAIR_OPTIONS, evaluateRepair, collidingTotals, ORDERS, WAREHOUSES, SUPPLIER_LINKS, inventoryTrueTotal, type RepairId } from "@/domain/fanout";
 import { TEACH_CRITERIA, outcome } from "@/domain/learning";
 import { progressStore, useProgress } from "@/services/progress-store";
-import { scriptedCoach, type CoachReply } from "@/services/coach";
+import { useServerFn } from "@tanstack/react-start";
+import { curatedFeedback, type CuratedReply } from "@/domain/curated-feedback";
+import { metCriteria } from "@/domain/evaluation";
+import { evaluateTeachBack, type EvalResult } from "@/lib/teach-eval.functions";
+import { insertAttempt, useSession } from "@/services/remote-sync";
 import { Callout, HintPanel, StepShell, money } from "./shared";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +42,7 @@ export function RepairStep() {
           )}
         </Callout>
       )}
+      {p.repairSolved && <IndustryCard />}
       {p.repairAttempts.length > 0 && <p className="font-mono text-xs text-muted-foreground">Attempts recorded: {p.repairAttempts.length}</p>}
     </StepShell>
   );
@@ -45,44 +50,68 @@ export function RepairStep() {
 
 export function TeachStep() {
   const p = useProgress();
+  const session = useSession();
+  const evalFn = useServerFn(evaluateTeachBack);
   const [text, setText] = useState(p.teach?.text ?? "");
-  const [reply, setReply] = useState<CoachReply | null>(null);
+  const [curated, setCurated] = useState<CuratedReply | null>(null);
+  const [ai, setAi] = useState<EvalResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
   const send = async () => {
-    setLoading(true); setErr(null);
-    try {
-      const r = await scriptedCoach.review(text);
-      setReply(r);
-      progressStore.set((s) => ({ ...s, teach: { text, met: r.met } }));
-      progressStore.log({ step: "teach", kind: "teach", detail: `Teach-back met ${r.met.length}/4 criteria`, correct: r.passed });
-    } catch { setErr("The colleague couldn't review that. Try again."); }
-    finally { setLoading(false); }
+    setLoading(true); setAi(null);
+    const r = curatedFeedback(text);
+    setCurated(r);
+    progressStore.set((s) => ({ ...s, teach: { text, met: r.met } }));
+    progressStore.log({ step: "teach", kind: "teach", detail: `Curated rubric: ${r.met.length}/4 criteria`, correct: r.passed });
+    if (session) {
+      const a = await insertAttempt({ activity: "teach", answer: text, hintsUsed: p.hints.teach ?? 0 });
+      if ("error" in a) setAi({ ok: false, error: `Your answer wasn't saved, so it couldn't be evaluated: ${a.error}` });
+      else {
+        try { setAi(await evalFn({ data: { accessToken: session.access_token, attemptId: a.id, text } })); }
+        catch { setAi({ ok: false, error: "The evaluation service didn't respond." }); }
+      }
+    }
+    setLoading(false);
   };
   return (
     <StepShell id="teach" kicker="Explain it to a colleague" title="Teach Sam why the dashboard was wrong" canContinue={!!p.teach}>
-      <div className="rounded-md border border-border bg-muted px-3 py-2 text-xs">
-        <strong>Scripted colleague:</strong> responses come from a rule-based rubric running in your browser — not a live AI model.
-      </div>
-      <div className="paper p-4 max-w-3xl"><p className="text-sm"><strong>Sam (analyst):</strong> “I'd have shipped that +100% too. What went wrong, and how do we fix it?”</p></div>
-      <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5} aria-label="Your explanation"
+      <div className="paper max-w-3xl p-4"><p className="text-sm"><strong>Sam (analyst):</strong> “I'd have shipped that +100% too. What went wrong, and how do we fix it?”</p></div>
+      <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5} maxLength={4000} aria-label="Your explanation"
         placeholder="Explain the duplication, the row grain, a correct fix, and why DISTINCT isn't one…"
         className="w-full max-w-3xl rounded-lg border border-input bg-card p-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-      <Button onClick={send} disabled={text.trim().length < 20 || loading}>{loading ? "Sam is reading…" : "Send to Sam"}</Button>
-      {err && <Callout tone="warn" title="Something went wrong">{err}</Callout>}
-      {reply && (
+      <div className="flex flex-wrap items-center gap-3">
+        <Button onClick={send} disabled={text.trim().length < 20 || loading}>{loading ? (session ? "AI is evaluating…" : "Checking…") : "Send to Sam"}</Button>
+        {!session && <span className="text-xs text-muted-foreground"><Link to="/auth" className="text-teal underline">Sign in</Link> for server-side AI evaluation. Demo mode uses curated feedback only.</span>}
+      </div>
+      {ai && (ai.ok ? (
         <div className="max-w-3xl space-y-3">
-          <Callout tone={reply.passed ? "ok" : "info"} title="Sam replies">{reply.message}</Callout>
-          <ul className="grid gap-2 sm:grid-cols-2 text-sm">
-            {TEACH_CRITERIA.map((c) => (
-              <li key={c.id} className={cn("rounded border px-3 py-2", reply.met.includes(c.id) ? "border-ok/40 bg-ok-soft" : "border-border text-muted-foreground")}>
-                {reply.met.includes(c.id) ? "✓" : "○"} {c.label}
-              </li>
-            ))}
-          </ul>
+          <p className="kicker">AI evaluation · server-side model</p>
+          <Callout tone={ai.evaluation.verdict === "pass" ? "ok" : "info"} title={`Sam (AI): ${ai.evaluation.verdict === "pass" ? "That makes sense" : "Not there yet"}`}>
+            {ai.evaluation.feedback}
+            <p className="mt-2 font-mono text-xs text-muted-foreground">{ai.persisted ? "Evaluation saved to your account by the server." : `Not saved: ${ai.persistNote}.`}</p>
+          </Callout>
+          <CriteriaList met={metCriteria(ai.evaluation)} />
+        </div>
+      ) : <Callout tone="warn" title="AI evaluation unavailable — showing curated fallback only">{ai.error}</Callout>)}
+      {curated && (
+        <div className="max-w-3xl space-y-3">
+          <p className="kicker">Curated feedback · keyword rubric fallback (not AI)</p>
+          <Callout tone={curated.passed ? "ok" : "info"} title="Rubric check">{curated.message}</Callout>
+          <CriteriaList met={curated.met} />
         </div>
       )}
     </StepShell>
+  );
+}
+
+function CriteriaList({ met }: { met: string[] }) {
+  return (
+    <ul className="grid gap-2 text-sm sm:grid-cols-2">
+      {TEACH_CRITERIA.map((c) => (
+        <li key={c.id} className={cn("rounded border px-3 py-2", met.includes(c.id) ? "border-ok/40 bg-ok-soft" : "border-border text-muted-foreground")}>
+          {met.includes(c.id) ? "✓" : "○"} {c.label}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -136,5 +165,16 @@ export function TransferStep() {
       </div>
       <HintPanel step="transfer" />
     </section>
+  );
+}
+
+function IndustryCard() {
+  return (
+    <aside className="paper max-w-3xl border-l-4 border-l-teal p-5">
+      <p className="kicker">Documented product application · not a customer incident</p>
+      <h3 className="mt-2 text-xl">How Looker handles join fan-out</h3>
+      <p className="mt-2 text-sm leading-relaxed">Looker's documentation describes “symmetric aggregates”: when a join repeats a row, Looker uses each row's primary key to know which facts are the same fact, so a measure like a sum counts each order once — unlike DISTINCT, which only compares values.</p>
+      <a href="https://docs.cloud.google.com/looker/docs/best-practices/understanding-symmetric-aggregates" target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm text-teal underline underline-offset-4">Read Looker's documentation ↗</a>
+    </aside>
   );
 }
