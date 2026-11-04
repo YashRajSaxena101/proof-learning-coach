@@ -37,13 +37,31 @@ function Instructor() {
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         <Tilt className="paper rounded-2xl p-5 md:col-span-2">
           <div className="flex items-center justify-between"><p className="text-sm">Hints revealed per learner</p><Sample /></div>
-          <div className="mt-6 flex h-40 items-end gap-6">
+          {/* Definite plot height so percentage bars resolve; labels sit outside the plot area. */}
+          <div
+            role="img"
+            aria-label="Bar chart of hints revealed per learner: A=1, B=0, C=5, D=2"
+            className="mt-6 flex h-40 items-end gap-6 border-b border-border/60 px-2"
+          >
+            {SAMPLE.map((s) => {
+              const pct = (s.hints / maxH) * 100;
+              return (
+                <div key={s.name} className="flex h-full flex-1 flex-col items-center justify-end">
+                  <div className="relative w-full" style={{ height: `${pct}%` }}>
+                    <span className="font-mono text-xs absolute -top-5 left-1/2 -translate-x-1/2">{s.hints}</span>
+                    {s.hints > 0 ? (
+                      <div className="h-full w-full rounded-t-md bg-gradient-to-t from-teal/20 to-teal" />
+                    ) : (
+                      <span className="sr-only">No hints revealed</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-2 flex gap-6 px-2 text-center">
             {SAMPLE.map((s) => (
-              <div key={s.name} className="flex flex-1 flex-col items-center gap-2">
-                <span className="font-mono text-xs">{s.hints}</span>
-                <div className="w-full rounded-t-md bg-gradient-to-t from-teal/20 to-teal" style={{ height: `${Math.max(4, (s.hints / maxH) * 100)}%` }} />
-                <span className="text-[11px] text-muted-foreground">{s.name.replace("Learner ", "")}</span>
-              </div>
+              <span key={s.name} className="flex-1 text-[11px] text-muted-foreground">{s.name.replace("Learner ", "")}</span>
             ))}
           </div>
         </Tilt>
