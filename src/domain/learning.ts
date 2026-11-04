@@ -58,6 +58,9 @@ export function outcome(p: Progress): Outcome {
 /** Unassisted transfer = correct on the first attempt with zero transfer hints. Earlier-step hints don't change this, but are reported separately. */
 export const transferUnassisted = (p: Progress) =>
   p.transfer.solved && p.transfer.attempts.length === 1 && !(p.hints.transfer ?? 0);
+/** Display completion: recorded completed steps plus a solved transfer, unique, in STEPS order. Pure; never mutates progress. */
+export const completedSteps = (p: Progress): StepId[] =>
+  STEPS.map((s) => s.id).filter((id) => p.completed.includes(id) || (id === "transfer" && p.transfer.solved));
 /** Hints used in any step before transfer. */
 export const earlierHints = (p: Progress) =>
   Object.entries(p.hints).filter(([k]) => k !== "transfer").reduce((a, [, v]) => a + (v ?? 0), 0);

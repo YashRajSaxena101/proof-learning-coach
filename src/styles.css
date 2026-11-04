@@ -45,6 +45,7 @@
 
 :root {
   color-scheme: dark;
+  --header-h: 56px;
   --radius: 0.75rem;
   --background: oklch(0.155 0.018 255);
   --foreground: oklch(0.95 0.018 85);
