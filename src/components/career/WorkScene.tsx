@@ -48,12 +48,12 @@ export function WorkScene({ scene, choice, compact = false }: {
           <text x="340" y="28" textAnchor="middle" fill="var(--muted-foreground)" fontSize="12">Service fanout · illustrative capacity and resource cost</text>
           <circle cx="340" cy="175" r="45" fill="var(--teal-soft)" stroke={tone} /><text x="340" y="173" textAnchor="middle" fill="var(--foreground)" fontSize="12">Distribution</text><text x="340" y="190" textAnchor="middle" fill="var(--foreground)" fontSize="12">hub</text>
           {positions.map(p => <path key={p.node.id} d={`M340 175L${p.x} ${p.y}`} stroke={tone} opacity={choice ? 0.7 : 0.25} strokeDasharray={effect.constrained ? "3 8" : undefined} />)}
-          <text x="340" y="330" textAnchor="middle" fill={tone} fontSize="12">{choice ? `Capacity proxy ${choice.metrics.speed} · resource cost ${choice.metrics.cost} (simulated)` : "Inspect the services before adding capacity"}</text>
+          <text x="340" y="348" textAnchor="middle" fill={tone} fontSize="12">{choice ? `Capacity proxy ${choice.metrics.speed} · resource cost ${choice.metrics.cost} (simulated)` : "Inspect the services before adding capacity"}</text>
         </g>}
         {scene.domain === "security" && <g>
           <rect x="25" y="52" width="285" height="260" rx="10" fill="var(--warn-soft)" opacity="0.35" /><rect x="370" y="52" width="285" height="260" rx="10" fill="var(--teal-soft)" opacity="0.35" />
           <text x="160" y="75" textAnchor="middle" fill="var(--foreground)" fontSize="12">Requesting zone</text><text x="510" y="75" textAnchor="middle" fill="var(--foreground)" fontSize="12">Protected zone</text>
-          <path d="M340 55v240" stroke="var(--warn)" strokeDasharray="5 7" strokeWidth="2" /><rect x="322" y="147" width="36" height="54" rx="5" fill="var(--card)" stroke={tone} />
+          <path d="M340 55v240" stroke="var(--warn)" strokeDasharray="5 7" strokeWidth="2" />
           <text x="340" y="327" textAnchor="middle" fill={tone} fontSize="12">{choice ? effect.constrained ? "Simulated boundary: hold request for review" : "Simulated boundary: scoped access path" : "Access is not decided until you choose"}</text>
         </g>}
         {scene.domain === "product" && <g>

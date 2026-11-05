@@ -47,11 +47,11 @@ function Home() {
             <br />
             behind the <em className="font-normal text-teal">interview.</em>
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
+          <p className="hero-reading mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
             Turn “I’ve learned about it” into “Here’s how I’d approach it.” Rehearse a workplace
             decision, talk it through, and try a new constraint.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <div className="hero-reading mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" variant="teal">
               <Link to="/practice" search={{ new: true }}>
                 Build my practice <ArrowRight />

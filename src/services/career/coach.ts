@@ -25,6 +25,8 @@ export async function requestCareerCoach(input: unknown, signal: AbortSignal) {
       body: request,
       signal: combined,
     });
+    if (signal.aborted) throw new CareerCoachError("Request stopped. Your inputs and previous work are kept.");
+    if (timeout.aborted) throw new CareerCoachError("The coach took too long. Your inputs are kept. Please retry.");
     if (error) {
       const response =
         "context" in error && error.context instanceof Response ? error.context : undefined;
