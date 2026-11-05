@@ -23,3 +23,5 @@
 - Career guest access uses a private device-stored capability returned by career-coach, never anonymous Auth; exclude it from all UI, URLs, exports and logging because it grants scoped access.
 - Career feedback requests are scoped to a session, stage, attempt and cancellation generation; retain stage drafts separately and gate advancement on resolved feedback or explicit failure skip to prevent stale assessment displays.
 - Career scene geometry and simulated choice effects are pure seeded domain functions; render six bounded domain compositions with instance-scoped SVG definitions to keep visual meaning testable and accessible.
+- Career decisions retain append-only choice history and each reflection's choice snapshot; changing a choice invalidates current-feedback display without deleting prior attempts or help.
+- Fixed examples skip calibration and remain topic templates; setup/stage transitions focus their heading, while presentation shortcuts never intercept interactive controls.

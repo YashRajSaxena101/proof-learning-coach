@@ -1,4 +1,7 @@
 # Career-coach integration corrections
+- [x] Independent review: decision revision with preserved history, complete evidence/transcript, fixed-example limits
+- [x] Independent review: setup/stage focus, Progress alias, neutral coach prompt and accessible pitch controls
+- [x] Independent review regression suite and desktop/mobile checks; no backend changes or publication
 - [x] Integrate scoped guest capabilities, inert learner text and private device persistence; no backend changes
 - [x] Regression tests and fixes for long custom topics, stage/request isolation and latest feedback
 - [x] Six distinct seeded, decision-responsive scenes and truthful availability copy

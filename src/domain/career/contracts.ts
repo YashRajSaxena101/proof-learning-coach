@@ -148,6 +148,7 @@ export const sessionSchema = z
     stage: z.enum(["decisions", "interview", "transfer", "complete"]),
     drafts: z.object({ decisions: z.string().max(2000).optional(), interview: z.string().max(2000).optional(), transfer: z.string().max(2000).optional() }).strict().optional(),
     choices: z.record(z.string()),
+    choiceHistory: z.array(z.object({ decisionId: z.string().max(20), choiceId: z.string().max(20), createdAt: z.string().datetime(), helpUsed: z.number().int().min(0).max(100) }).strict()).max(100).optional(),
     answers: z
       .array(
         z
@@ -157,6 +158,7 @@ export const sessionSchema = z
             feedbackAt: z.string().datetime().optional(),
             status: z.enum(["pending", "failed", "complete", "recorded"]).optional(),
             stage: z.enum(["decisions", "interview", "transfer"]),
+            choices: z.record(z.string()).optional(),
             text: z.string().max(2000),
             helpUsed: z.number().int().min(0).max(100),
             feedback: feedbackSchema.optional(),

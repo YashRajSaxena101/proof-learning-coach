@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { SLIDES } from "@/components/present/slides";
 import { SlideVisual } from "@/components/present/visuals";
 import { useMotionPref } from "@/lib/motion-pref";
+import { isPresentationShortcutTarget } from "@/lib/navigation-accessibility";
 
 export const Route = createFileRoute("/present")({
   head: () => ({
@@ -34,8 +35,10 @@ function Present() {
     timer.current = setInterval(() => setSecs((s) => (s && s > 0 ? s - 1 : 0)), 1000);
   }, []);
   useEffect(() => () => { if (timer.current) clearInterval(timer.current); }, []);
+  useEffect(() => { if (secs === 0 && timer.current) { clearInterval(timer.current); timer.current = null; } }, [secs]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || !isPresentationShortcutTarget(e.target)) return;
       if (["ArrowRight", " ", "PageDown"].includes(e.key)) { e.preventDefault(); go(1); }
       else if (["ArrowLeft", "PageUp"].includes(e.key)) go(-1);
       else if (e.key === "n" || e.key === "N") setNotes((n) => !n);
@@ -74,7 +77,8 @@ function Present() {
         {s.demoCue && (
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Button variant="teal" size="lg" onClick={startTimer}><Timer /> {secs === null ? "Start 90s demo cue (T)" : "Restart cue"}</Button>
-            {secs !== null && <span className={`font-mono text-4xl ${secs <= 15 ? "text-warn" : "text-teal"}`} aria-live="polite">{Math.floor(secs / 60)}:{String(secs % 60).padStart(2, "0")}</span>}
+            {secs !== null && <span className={`font-mono text-4xl ${secs <= 15 ? "text-warn" : "text-teal"}`} aria-live="off" role="timer" aria-label="Demo time remaining">{Math.floor(secs / 60)}:{String(secs % 60).padStart(2, "0")}</span>}
+            <span role="status" className="sr-only">{secs === 0 ? "Demo time complete." : secs === null ? "" : "Demo timer running."}</span>
             <Button variant="outline" size="lg" asChild><Link to="/practice" search={{example:true}}>Open example practice</Link></Button>
           </div>
         )}
@@ -83,9 +87,9 @@ function Present() {
       </motion.section>
       </AnimatePresence>
       {notes && <div className="relative z-10 border-t border-border bg-ink px-8 py-4 text-ink-foreground"><p className="kicker">Speaker notes</p><p className="mt-1 max-w-4xl">{s.notes}</p></div>}
-      <div className="relative z-10 flex items-center justify-between border-t border-border/60 px-4 pb-14 pt-2">
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 px-4 pb-14 pt-2">
         <Button variant="ghost" aria-label="Previous slide" onClick={() => go(-1)} disabled={i === 0}><ChevronLeft /> Prev</Button>
-        <div className="flex gap-1.5">{SLIDES.map((_, k) => <button key={k} aria-label={`Slide ${k + 1}`} onClick={() => setI(k)} className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-teal" : "w-3 bg-border"}`} />)}</div>
+        <nav aria-label="Slides" className="order-first flex w-full justify-center sm:order-none sm:w-auto">{SLIDES.map((_, k) => <Button key={k} variant="ghost" aria-label={`Slide ${k + 1}`} aria-current={k === i ? "step" : undefined} onClick={() => setI(k)} className="size-11 shrink-0 rounded-full p-0"><span aria-hidden className={`h-1.5 rounded-full ${k === i ? "w-7 bg-teal" : "w-3 bg-border"}`} /></Button>)}</nav>
         <Button variant="ghost" aria-label="Next slide" onClick={() => go(1)} disabled={i === SLIDES.length - 1}>Next <ChevronRight /></Button>
       </div>
     </div>
