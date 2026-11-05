@@ -9,6 +9,7 @@ import { Page } from "@/components/SiteHeader";
 import { WorkScene } from "@/components/career/WorkScene";
 import { SaveNotice } from "@/components/career/SaveNotice";
 import { ParticleField } from "@/components/fx/ParticleField";
+import { SessionHistory } from "@/components/career/SessionHistory";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
@@ -134,19 +135,7 @@ export function CareerDashboard() {
                       </Link>
                     </Button>
                   </div>
-                  {s.answers.slice(-2).map((a, i) => (
-                    <details className="mt-4" key={i}>
-                      <summary className="cursor-pointer py-2 text-sm text-teal">
-                        {a.stage} reflection ·{" "}
-                        {a.feedback ? "AI feedback available" : "not AI evaluated"} ·{" "}
-                        {a.helpUsed ? "with help" : "no coach help requested"}
-                      </summary>
-                      <p className="mt-2 break-words leading-relaxed">{a.text}</p>
-                      {a.feedback && (
-                        <p className="mt-3 text-muted-foreground">{a.feedback.message}</p>
-                      )}
-                    </details>
-                  ))}
+                  <SessionHistory session={s} />
                 </li>
               ))}
             </ol>
