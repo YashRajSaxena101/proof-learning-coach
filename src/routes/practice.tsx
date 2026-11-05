@@ -69,6 +69,7 @@ function Practice() {
     abort.current?.abort();
     setBusy(false);
     setWorkspace(!search.new && !search.example);
+    if (search.example || search.new) setStep(0);
   }, [search.new, search.example]);
   useEffect(
     () => () => {
@@ -176,7 +177,7 @@ function Practice() {
         ))}
       </ol>
       <div ref={setupContent} className="mt-10 min-h-80">
-        {step === 0 && (
+        {(step === 0 || search.example) && (
           <>
             <h1 tabIndex={-1} className="text-4xl md:text-5xl">What work are you curious about?</h1>
             <p className="mt-4 text-muted-foreground">
@@ -226,7 +227,7 @@ function Practice() {
             )}
           </>
         )}
-        {step === 1 && (
+        {step === 1 && !search.example && (
           <>
             <h1 tabIndex={-1} className="text-4xl md:text-5xl">Where would you like to begin?</h1>
             <p className="mt-4 text-muted-foreground">
@@ -273,7 +274,7 @@ function Practice() {
             </label>
           </>
         )}
-        {step === 2 && (
+        {step === 2 && !search.example && (
           <>
             <h1 tabIndex={-1} className="text-4xl md:text-5xl">Make room for a small rehearsal.</h1>
             <p className="mt-4 text-muted-foreground">
@@ -326,7 +327,7 @@ function Practice() {
             </fieldset>
           </>
         )}
-        {step === 3 && (
+        {step === 3 && !search.example && (
           <>
             <p className="kicker">A starting point, not a test score</p>
             <h1 tabIndex={-1} className="mt-3 text-3xl md:text-4xl">{diagnosticQuestion(p.topic)}</h1>

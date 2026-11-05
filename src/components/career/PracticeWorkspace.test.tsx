@@ -59,7 +59,7 @@ it("revisits a choice, keeps the initial response and help, and requires new fee
   await waitFor(() => expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled());
   const initial = careerStore.get().sessions[0]?.answers[0];
   fireEvent.click(screen.getByRole("button", { name: /Revisit decision: What is your first approach/ }));
-  fireEvent.click(screen.getByRole("button", { name: "Remove repeated numeric values", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: "Remove repeated numeric values" }));
   expect(screen.queryByText("Feedback for this attempt")).toBeNull();
   expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
   expect(careerStore.get().sessions[0]?.answers[0]).toEqual(initial);
