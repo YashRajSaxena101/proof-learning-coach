@@ -38,7 +38,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
     setBusy(false);
   }
   useEffect(() => {
-    setError(""); setOfflineNote(""); setChat("");
+    setBusy(false); setError(""); setOfflineNote(""); setChat("");
     return () => { gate.current.cancel(); control.current?.abort(); };
   }, [s.id, s.stage]);
   useEffect(() => {

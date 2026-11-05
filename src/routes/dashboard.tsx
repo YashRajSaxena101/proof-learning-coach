@@ -39,7 +39,7 @@ export function CareerDashboard() {
       <div className="relative isolate">
         <ParticleField
           density={0.2}
-          className="pointer-events-none absolute inset-0 -z-10 opacity-20"
+          className="pointer-events-none absolute inset-0 -z-10 opacity-10"
         />
         <p className="kicker">Your progress · career practice</p>
         <h1 className="mt-4 text-4xl md:text-6xl">

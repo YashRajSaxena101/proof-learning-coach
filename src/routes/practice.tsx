@@ -63,6 +63,9 @@ function Practice() {
     }
   }, []);
   useEffect(() => {
+    gate.current.cancel();
+    abort.current?.abort();
+    setBusy(false);
     setWorkspace(!search.new && !search.example);
   }, [search.new, search.example]);
   useEffect(
@@ -73,6 +76,9 @@ function Practice() {
     [],
   );
   const change = (next: Partial<Profile>) => {
+    gate.current.cancel();
+    abort.current?.abort();
+    setBusy(false);
     const value = { ...p, ...next };
     setP(value);
     const parsed = profileSchema.safeParse(value);
