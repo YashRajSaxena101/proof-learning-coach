@@ -1,34 +1,39 @@
 # Proof Learning Coach
 
-Build Proof, a polished interactive AI learning coach for a UTD hackathon. User authorized implementation. Main priority: an exceptional learning simulation and presentation demo. Create app now, name Proof. Use light ivory background, deep navy typography, teal accents, sophisticated editorial typography, subtle motion, excellent responsive layout. No generic landing-page-only result. Main CTA Try the simulation immediately enters real interactive scenario.
+Proof helps college graduates practice the work behind a job interview. Learners choose a role or topic, describe their experience and interests, and answer a short starting question. The AI coach generates a fictional workplace scenario with decisions, constraints, evidence, an interview question, and a related challenge in a new context.
 
-Build flagship "The Revenue Mirage" for a FICTIONAL retailer Northstar Supply. Accurate deterministic data: previous month revenue $500. Current orders O101 $120, O102 $80, O103 $120, O104 $180 (total $500); each order has exactly two line items, whose amounts sum to its total: 50+70,30+50,40+80,100+80. Faulty join SUM(orders.total) across 8 line items returns $1000, false +100%; true revenue stays $500, 0% growth. SUM(DISTINCT orders.total) is WRONG $380 because two different orders share $120; show why. Correct options aggregate at order grain or sum line amounts. Never invent real-company incidents.
+The aim is to turn concepts into reasoning a learner can explain: make a choice, ask for help, explain a tradeoff, receive feedback, revise, and try another constraint. Choices, attempts, revisions, and help requests remain visible. Proof does not claim to measure job readiness or guarantee employment.
 
-Flow: receive CFO brief about apparent revenue growth and marketing decision; predict result using 3 curated choices and confidence; interactive tables click order to highlight matching items; animate join rows to output with reduced-motion and keyboard controls; click inflated total to trace duplicate contributions; repair query choosing validated alternatives (no arbitrary SQL execution); explain correction/teach back to AI colleague; fresh transfer challenge on inventory (two warehouses quantities 30 and 20, each duplicated by 2 supplier rows; wrong total100 true50). Progress map and evidence history. Hints 3 levels, record assistance. High-confidence incorrect answer triggers misconception follow-up; low-confidence incorrect gets prerequisite scaffold. Assisted success not mastery. Persist demo in localStorage with reset and clear label browser-only until backend ready, don't imply real AI if unavailable. Correct calculations via pure functions with meaningful unit tests covering duplicate amounts and transfer. Source code modular.
+- [Public Lovable application](https://proof-learning-coach.lovable.app)
+- [Existing Lovable project](https://lovable.dev/projects/25cd456b-a1ba-496d-9f5b-2887b65879bd)
+- [Hackathon problem statement](https://aibizclub.org/utds-biggest-no-code-problem-statement)
 
-Screens / home, /learn interactive simulation, /evidence learning evidence, /instructor (clearly labeled sample dashboard unless authenticated real data), /present full-screen 8-slide keyboard-controlled pitch with speaker notes toggle and 90-second demo cue. Pitch: plausible wrong business decision, learning gap, Proof experience, live demo, adaptive learning paths, architecture, validation/pilot proposal (no fabricated metrics), closing. Presentation must truthfully distinguish implemented vs roadmap. Add replayable animation, no dead buttons, empty/error/loading states.
+## Experience
 
-External Supabase project has just been created for this app: ref vyaydusrhhcazxshadxv. Do NOT provision a second database or substitute Lovable Cloud. Build frontend and backend-ready service interfaces now. We will provide publishable key/url next and manage schema via Supabase MCP. Real teaching API must be server-side; don't expose secrets. Do not claim backend/auth/AI completed without actual integration and verification. If connecting external Supabase requires user dashboard action, identify exact blocker while finishing frontend. Provide test results and implementation summary.
+Six starting directions cover AI engineering, data analysis, software engineering, cloud/DevOps, cybersecurity, and product/business. Learners can enter their own topic. AI generation uses the complete learning profile; fixed examples use only the selected topic and are clearly labeled as non-AI exercises.
 
-This project was built with [Lovable](https://lovable.dev).
+The dark interface includes centered interactive canvas particles, scroll-driven storytelling, motion-aware page transitions, an introductory practice studio, and six bounded scene compositions. Generated scenes are validated data, not executable code. Decision consequences appear after the learner commits, and every recorded decision can be inspected separately.
 
-**Live app**: https://proof-learning-coach.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/25cd456b-a1ba-496d-9f5b-2887b65879bd).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+The original deterministic revenue investigation remains available at `/learn`, with its existing evidence, instructor sample, account integration, and data tests.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Use the committed Bun lockfile for reproducible dependencies:
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+bun install --frozen-lockfile
+bun run dev
+bun run test
+bunx tsc --noEmit
+bun run build
 ```
+
+The frontend uses React, TypeScript, TanStack Start, Tailwind, Motion, and accessible Radix components. Source rules are in `AGENTS.md`. Push ordinary commits to the connected `main` branch to sync changes into Lovable; never rewrite published history.
+
+## AI and persistence
+
+The external Supabase project runs the separate `career-coach` function. It validates caller ownership, stores scenarios and bounded conversation context privately, applies atomic inference budgets, and calls the configured Ollama provider. Provider credentials stay server-side. See `supabase/VERIFICATION.md` for deployed source details, security checks, and known limits.
+
+Career practice saves in the current browser. Signing in does not currently sync career history across devices. The original sample-case account sync is separate. Guest capabilities are private session credentials: never put them in URLs, logs, analytics, screenshots, or exports.
+
+Generated output can be inaccurate or fail schema validation. Failures keep the learner's inputs and offer retry or an explicitly unevaluated continuation; fixed examples remain available. Software checks are not evidence of learning gains. A learner study is still future work.

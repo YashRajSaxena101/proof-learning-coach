@@ -76,6 +76,9 @@ describe("Career contracts", () => {
   });
   it("suggests concrete practice from demonstrated gaps, not self-report", () => {
     expect(nextSuggestion(["data boundaries"])).toContain("data boundaries");
+    expect(
+      nextSuggestion(["Missing evidence"], ["Compare the result against source records."]),
+    ).toBe("Compare the result against source records.");
   });
 });
 describe("Career persistence and request ordering", () => {

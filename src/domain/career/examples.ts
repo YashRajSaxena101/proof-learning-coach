@@ -85,10 +85,18 @@ const configs: Record<
   },
 };
 export function exampleScenario(topic: string): Scenario {
+  // A custom topic is a label only. The example body remains a fixed template.
+  const topicLabel = topic
+    .replace(/https?:\/\/\S+|javascript:/gi, "")
+    .replace(/[<>]/g, "")
+    .trim();
   const c = configs[topic] ?? {
     domain: "product" as const,
-    title: `A first workplace rehearsal: ${topic.replace(/[<>]/g, "").replace(/https?:\/\/|javascript:|\b(?:SELECT|INSERT|DROP)\s/gi, "").slice(0, 69)}${topic.length > 69 ? "…" : ""}`,
-    request: `A fictional team needs a practical recommendation about ${topic}. Clarify its goal, gather evidence and propose a small reversible next step.`,
+    title: topicLabel
+      ? `General reasoning: ${topicLabel.slice(0, 75)}${topicLabel.length > 75 ? "…" : ""}`
+      : "A general workplace reasoning rehearsal",
+    request:
+      "A fictional team needs a practical recommendation. Clarify its goal, gather evidence and propose a small reversible next step. This fixed example is a general reasoning template; it does not teach or adapt to your custom topic.",
     nodes: ["Team request", "Evidence", "Small trial", "Recommendation"],
     options: [
       "Clarify and test assumptions",

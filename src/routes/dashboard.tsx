@@ -3,12 +3,13 @@ import { ArrowRight, Plus, Check, Clock } from "lucide-react";
 import { useCareer, careerStore } from "@/services/career/store";
 import { useEffect } from "react";
 import { nextSuggestion } from "@/domain/career/contracts";
-import { latestFeedback, visibleDecisionForScene } from "@/domain/career/scene";
+import { latestFeedback, visibleDecisionsForScene } from "@/domain/career/scene";
 import { Button } from "@/components/ui/button";
 import { Page } from "@/components/SiteHeader";
 import { WorkScene } from "@/components/career/WorkScene";
 import { SaveNotice } from "@/components/career/SaveNotice";
 import { ParticleField } from "@/components/fx/ParticleField";
+import { CareerLaunchpad } from "@/components/career/CareerLaunchpad";
 import { SessionHistory } from "@/components/career/SessionHistory";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -40,11 +41,11 @@ export function CareerDashboard() {
       <div className="relative isolate">
         <ParticleField
           density={0.2}
-          className="pointer-events-none absolute inset-0 -z-10 opacity-10"
+          className="pointer-events-none absolute -inset-x-5 inset-y-0 -z-10 opacity-30"
         />
-        <p className="kicker">Your progress · career practice</p>
+        <p className="kicker">Your practice studio</p>
         <h1 className="mt-4 text-4xl md:text-6xl">
-          {active ? "Keep building your reasoning." : "A starting point, not a finish line."}
+          {active ? "Keep building your reasoning." : "Your next chapter starts with practice."}
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
           {active
@@ -74,30 +75,20 @@ export function CareerDashboard() {
               </Link>
             </Button>
           </div>
-          <WorkScene scene={active.scenario.scene} choice={visibleDecisionForScene(active)} compact />
+          <WorkScene
+            scene={active.scenario.scene}
+            decisions={visibleDecisionsForScene(active)}
+            compact
+          />
         </section>
       ) : (
-        <section className="mt-10 border-y border-border py-10">
-          <h2 className="text-3xl">What would you like to practice?</h2>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button asChild size="lg" variant="teal">
-              <Link to="/practice" search={{ new: true }}>
-                Build my practice <ArrowRight />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/practice" search={{ example: true }}>
-                Try an example
-              </Link>
-            </Button>
-          </div>
-        </section>
+        <CareerLaunchpad />
       )}
       {state.sessions.length > 0 && (
         <>
           <section className="mt-10">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-3xl">Practice trajectory</h2>
+              <h2 className="text-3xl">Your practice history</h2>
               <Button asChild size="lg" variant="outline">
                 <Link to="/practice" search={{ new: true }}>
                   <Plus /> Start new
@@ -142,10 +133,12 @@ export function CareerDashboard() {
           </section>
           <section className="mt-10 border-t border-border pt-7">
             <p className="kicker">One next step</p>
-            <h2 className="mt-3 text-2xl">{nextSuggestion(feedback?.feedback.gaps ?? [])}</h2>
+            <h2 className="mt-3 text-2xl">
+              {nextSuggestion(feedback?.feedback.gaps ?? [], feedback?.feedback.retrySuggestions)}
+            </h2>
             <p className="mt-3 text-muted-foreground">
               {feedback
-                ? "Based on your latest recorded Ollama feedback, kept on this device; not a verified skill assessment."
+                ? "From your latest coach feedback. Use it to choose what to practice next."
                 : "No AI-evaluated gaps yet. This is an exploration suggestion, not a skill assessment."}
             </p>
             <Button asChild size="lg" variant="teal" className="mt-5">
@@ -157,9 +150,9 @@ export function CareerDashboard() {
         </>
       )}
       <section className="mt-12 border-t border-border pt-6">
-        <h2 className="text-xl">Original sample data case</h2>
+        <h2 className="text-xl">Explore a guided data case</h2>
         <p className="mt-2 text-muted-foreground">
-          The Revenue Mirage and its recorded evidence are still available.
+          Investigate a report that looks too good to be true, then follow the evidence.
         </p>
         <div className="mt-3 flex flex-wrap gap-3">
           <Button asChild variant="ghost" size="lg">

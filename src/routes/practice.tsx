@@ -11,8 +11,8 @@ import { ParticleField } from "@/components/fx/ParticleField";
 import { SaveNotice } from "@/components/career/SaveNotice";
 export const Route = createFileRoute("/practice")({
   validateSearch: (s: Record<string, unknown>): { new?: boolean; example?: boolean } => ({
-    new: s['new'] === true || s['new'] === "true",
-    example: s['example'] === true || s['example'] === "true",
+    new: s["new"] === true || s["new"] === "true",
+    example: s["example"] === true || s["example"] === "true",
   }),
   head: () => ({
     meta: [
@@ -55,13 +55,17 @@ function Practice() {
   const gate = useRef(latestRequest());
   const abort = useRef<AbortController | undefined>(undefined);
   const setupContent = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (!workspace || !active) setupContent.current?.querySelector<HTMLHeadingElement>("h1")?.focus(); }, [step, workspace, active?.id, search.example]);
+  const activeId = active?.id;
+  useEffect(() => {
+    if (!workspace || !activeId)
+      setupContent.current?.querySelector<HTMLHeadingElement>("h1")?.focus();
+  }, [step, workspace, activeId, search.example]);
   useEffect(() => {
     careerStore.init();
     const saved = careerStore.get().profile;
     if (saved) {
       setP(saved);
-      setCustom(!TOPICS.some(t => t === saved.topic));
+      setCustom(!TOPICS.some((t) => t === saved.topic));
     }
   }, []);
   useEffect(() => {
@@ -94,23 +98,25 @@ function Practice() {
       return;
     }
     try {
-    careerStore.add({
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      profile: parsed.data,
-      scenario: exampleScenario(p.topic),
-      source: "example",
-      stage: "decisions",
-      choices: {},
-      answers: [],
-      messages: [],
-      helpUsed: 0,
-    });
-    setWorkspace(true);
-    void navigate({ to: '/practice', search: {}, replace: true });
-    setError("");
+      careerStore.add({
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        profile: parsed.data,
+        scenario: exampleScenario(p.topic),
+        source: "example",
+        stage: "decisions",
+        choices: {},
+        answers: [],
+        messages: [],
+        helpUsed: 0,
+      });
+      setWorkspace(true);
+      void navigate({ to: "/practice", search: {}, replace: true });
+      setError("");
     } catch {
-      setError("The example could not be opened. Your inputs are kept. Try again or choose another topic.");
+      setError(
+        "The example could not be opened. Your inputs are kept. Try again or choose another topic.",
+      );
     }
   }
   async function generate() {
@@ -147,7 +153,7 @@ function Practice() {
           helpUsed: 0,
         });
         setWorkspace(true);
-        void navigate({ to: '/practice', search: {}, replace: true });
+        void navigate({ to: "/practice", search: {}, replace: true });
       }
     } catch (e) {
       if (gate.current.current(id))
@@ -164,26 +170,49 @@ function Practice() {
         className="pointer-events-none absolute inset-0 -z-10 opacity-20"
       />
       <div className="flex items-center justify-between">
-        <p className="kicker">{search.example ? "Fixed topic example · choose a topic" : `Your practice · ${step + 1} of 4`}</p>
+        <p className="kicker">
+          {search.example
+            ? "Fixed topic example · choose a topic"
+            : `Your practice · ${step + 1} of 4`}
+        </p>
         {active && (
           <Button size="lg" variant="ghost" onClick={() => setWorkspace(true)}>
             Resume practice
           </Button>
         )}
       </div>
-      <ol className={`mt-5 grid gap-2 ${search.example ? "grid-cols-1" : "grid-cols-4"}`} aria-label="Setup progress">
+      <ol
+        className={`mt-5 grid gap-2 ${search.example ? "grid-cols-1" : "grid-cols-4"}`}
+        aria-label="Setup progress"
+      >
         {(search.example ? [0] : [0, 1, 2, 3]).map((i) => (
-          <li key={i} aria-current={i === step || search.example ? "step" : undefined} className={`h-1 ${i <= step ? "bg-teal" : "bg-muted"}`}><span className="sr-only">{search.example ? "Choose example topic" : `Setup step ${i + 1}`}</span></li>
+          <li
+            key={i}
+            aria-current={i === step || search.example ? "step" : undefined}
+            className={`h-1 ${i <= step ? "bg-teal" : "bg-muted"}`}
+          >
+            <span className="sr-only">
+              {search.example ? "Choose example topic" : `Setup step ${i + 1}`}
+            </span>
+          </li>
         ))}
       </ol>
       <div ref={setupContent} className="mt-10 min-h-80">
         {(step === 0 || search.example) && (
           <>
-            <h1 tabIndex={-1} className="text-4xl md:text-5xl">What work are you curious about?</h1>
+            <h1 tabIndex={-1} className="text-4xl md:text-5xl">
+              What work are you curious about?
+            </h1>
             <p className="mt-4 text-muted-foreground">
               Pick a direction. You can change it for your next practice.
             </p>
-            {search.example && <p className="mt-4 leading-relaxed text-muted-foreground">Examples are fixed topic scenarios, not AI-personalized. Experience and diagnostic answers do not change them. A custom-topic example is a general reasoning template, not specialist guidance.</p>}
+            {search.example && (
+              <p className="mt-4 leading-relaxed text-muted-foreground">
+                Examples are fixed topic scenarios, not AI-personalized. Experience and diagnostic
+                answers do not change them. A custom-topic example is a general reasoning template,
+                not specialist guidance.
+              </p>
+            )}
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
               {TOPICS.map((t) => (
                 <Button
@@ -229,9 +258,11 @@ function Practice() {
         )}
         {step === 1 && !search.example && (
           <>
-            <h1 tabIndex={-1} className="text-4xl md:text-5xl">Where would you like to begin?</h1>
+            <h1 tabIndex={-1} className="text-4xl md:text-5xl">
+              Where would you like to begin?
+            </h1>
             <p className="mt-4 text-muted-foreground">
-              This sets the starting explanation, not a proficiency score.
+              Choose the kind of explanation you would find useful.
             </p>
             <div className="mt-7 grid gap-3">
               {[
@@ -276,9 +307,11 @@ function Practice() {
         )}
         {step === 2 && !search.example && (
           <>
-            <h1 tabIndex={-1} className="text-4xl md:text-5xl">Make room for a small rehearsal.</h1>
+            <h1 tabIndex={-1} className="text-4xl md:text-5xl">
+              How would you like to practice?
+            </h1>
             <p className="mt-4 text-muted-foreground">
-              One realistic decision, then an explanation in your own words.
+              Make decisions, then explain your approach in your own words.
             </p>
             <fieldset className="mt-7">
               <legend className="mb-3">Your goal</legend>
@@ -330,7 +363,9 @@ function Practice() {
         {step === 3 && !search.example && (
           <>
             <p className="kicker">A starting point, not a test score</p>
-            <h1 tabIndex={-1} className="mt-3 text-3xl md:text-4xl">{diagnosticQuestion(p.topic)}</h1>
+            <h1 tabIndex={-1} className="mt-3 text-3xl md:text-4xl">
+              {diagnosticQuestion(p.topic)}
+            </h1>
             <p className="mt-4 text-muted-foreground">
               A sentence or two helps set the challenge. It’s okay to be unsure.
             </p>
@@ -381,7 +416,11 @@ function Practice() {
         >
           <ArrowLeft /> Back
         </Button>
-        {search.example ? <Button variant="teal" size="lg" disabled={!p.topic.trim()} onClick={example}>Open fixed example <ArrowRight /></Button> : step < 3 ? (
+        {search.example ? (
+          <Button variant="teal" size="lg" disabled={!p.topic.trim()} onClick={example}>
+            Open fixed example <ArrowRight />
+          </Button>
+        ) : step < 3 ? (
           <Button
             variant="teal"
             size="lg"
@@ -432,9 +471,15 @@ function Practice() {
         </Button>
       )}
       {step === 3 && !busy && !search.example && (
-        <div><p className="mt-5 text-sm text-muted-foreground">The fallback is a fixed topic example. It does not use your experience or diagnostic; custom topics use a general reasoning template.</p><Button variant="link" size="lg" className="mt-4" onClick={example}>
-          Try an example scenario instead · not AI generated
-        </Button></div>
+        <div>
+          <p className="mt-5 text-sm text-muted-foreground">
+            Want to explore first? A fixed example opens instantly. It won’t adapt to your answers;
+            for a custom topic, it offers a general reasoning exercise.
+          </p>
+          <Button variant="link" size="lg" className="mt-4" onClick={example}>
+            Try a fixed example · not AI generated
+          </Button>
+        </div>
       )}
       <SaveNotice />
       <p className="mt-6 text-sm text-muted-foreground">

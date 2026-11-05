@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase";
-import { requestSchema, scenarioSchema, feedbackSchema, capabilitySchema } from "@/domain/career/contracts";
+import {
+  requestSchema,
+  scenarioSchema,
+  feedbackSchema,
+  capabilitySchema,
+} from "@/domain/career/contracts";
 
 const generatedSchema = z
   .object({
@@ -25,15 +30,19 @@ export async function requestCareerCoach(input: unknown, signal: AbortSignal) {
       body: request,
       signal: combined,
     });
-    if (signal.aborted) throw new CareerCoachError("Request stopped. Your inputs and previous work are kept.");
-    if (timeout.aborted) throw new CareerCoachError("The coach took too long. Your inputs are kept. Please retry.");
+    if (signal.aborted)
+      throw new CareerCoachError("Request stopped. Your inputs and previous work are kept.");
+    if (timeout.aborted)
+      throw new CareerCoachError("The coach took too long. Your inputs are kept. Please retry.");
     if (error) {
       const response =
         "context" in error && error.context instanceof Response ? error.context : undefined;
       const status = response?.status;
       throw new CareerCoachError(
         status === 429
-          ? "Today’s coach request limit has been reached. Your work is kept; continue the example or return tomorrow."
+          ? request.action === "generate"
+            ? "The coach request limit has been reached. Your inputs are kept. Try a fixed example, or return later."
+            : "The coach request limit has been reached. Your work is kept. Record your reflection without feedback, or return later."
           : status === 404
             ? "The career coach is not deployed yet. Your inputs are kept; an example scenario is available."
             : status === 401 || status === 403

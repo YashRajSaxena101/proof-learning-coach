@@ -1,0 +1,5 @@
+project_id = "vyaydusrhhcazxshadxv"
+
+[functions.career-coach]
+# The function verifies actual account JWTs and scoped guest capabilities itself.
+verify_jwt = false

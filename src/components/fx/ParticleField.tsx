@@ -62,7 +62,7 @@ export function ParticleField({
       raf = 0,
       visible = true,
       last = 0;
-    const pointer = { x: 0, y: 0, active: false };
+    const pointer = { x: 0, y: 0, active: false, pressed: false };
     let ripple: { x: number; y: number; at: number } | undefined;
     const resize = () => {
       const rect = cv.getBoundingClientRect();
@@ -86,6 +86,8 @@ export function ParticleField({
       p.y = h.y;
     });
     const draw = (t: number, moving: boolean) => {
+      // Keep spring motion consistent on high-refresh screens and bound wake-up jumps.
+      const dt = last ? Math.min(2, Math.max(0.25, (t - last) / (1000 / 60))) : 1;
       ctx.clearRect(0, 0, W, H);
       ctx.globalCompositeOperation = "lighter";
       for (const p of points) {
@@ -97,10 +99,16 @@ export function ParticleField({
             const dx = p.x - pointer.x,
               dy = p.y - pointer.y;
             const dist = Math.hypot(dx, dy);
-            if (dist > 1 && dist < 105) {
-              const f = (1 - dist / 105) * 1.7;
+            const reach = pointer.pressed ? 185 : 125;
+            if (dist > 1 && dist < reach) {
+              const influence = 1 - dist / reach;
+              const f = influence * (pointer.pressed ? -3.2 : 2.4);
               ax += (dx / dist) * f;
               ay += (dy / dist) * f;
+              if (pointer.pressed) {
+                ax -= (dy / dist) * influence * 1.2;
+                ay += (dx / dist) * influence * 1.2;
+              }
             }
           }
           if (ripple) {
@@ -110,16 +118,17 @@ export function ParticleField({
             const age = t - ripple.at;
             const radius = age * 0.25;
             if (age < 1000 && dist > 1 && Math.abs(dist - radius) < 35) {
-              ax += (dx / dist) * 1.3 * (1 - age / 1000);
-              ay += (dy / dist) * 1.3 * (1 - age / 1000);
+              ax += (dx / dist) * 2.2 * (1 - age / 1000);
+              ay += (dy / dist) * 2.2 * (1 - age / 1000);
             }
           }
-          p.vx = (p.vx + ax) * 0.88;
-          p.vy = (p.vy + ay) * 0.88;
-          p.x += p.vx;
-          p.y += p.vy;
+          const damping = Math.pow(0.88, dt);
+          p.vx = (p.vx + ax * dt) * damping;
+          p.vy = (p.vy + ay * dt) * damping;
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
         }
-        const centerDistance = Math.hypot((p.x-W/2)/(W*0.36), (p.y-H/2)/(H*0.35));
+        const centerDistance = Math.hypot((p.x - W / 2) / (W * 0.36), (p.y - H / 2) / (H * 0.35));
         const legibility = density >= 1 && centerDistance < 1 ? 0.12 + centerDistance * 0.65 : 1;
         ctx.globalAlpha = (0.18 + p.z * 0.45) * legibility;
         const size = p.size * (1 + p.z * 0.25);
@@ -137,8 +146,8 @@ export function ParticleField({
     const loop = (t: number) => {
       raf = 0;
       if (!visible || document.hidden || !enabled.current) return;
-      last = t;
       draw(t, true);
+      last = t;
       raf = requestAnimationFrame(loop);
     };
     const start = () => {
@@ -181,10 +190,25 @@ export function ParticleField({
       const r = cv.getBoundingClientRect();
       const x = e.clientX - r.left,
         y = e.clientY - r.top;
-      if (x >= 0 && x <= W && y >= 0 && y <= H) ripple = { x, y, at: performance.now() };
+      if (x >= 0 && x <= W && y >= 0 && y <= H) {
+        ripple = { x, y, at: performance.now() };
+        if (
+          e.pointerType !== "touch" &&
+          !(e.target instanceof Element && e.target.closest("a,button,input,textarea,select,label"))
+        ) {
+          pointer.x = x;
+          pointer.y = y;
+          pointer.active = true;
+          pointer.pressed = true;
+        }
+      }
+    };
+    const release = () => {
+      pointer.pressed = false;
     };
     const leave = () => {
       pointer.active = false;
+      pointer.pressed = false;
     };
     const vis = () => {
       if (document.hidden) {
@@ -194,6 +218,9 @@ export function ParticleField({
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", onTap, { passive: true });
+    window.addEventListener("pointerup", release, { passive: true });
+    window.addEventListener("pointercancel", leave, { passive: true });
+    document.addEventListener("pointerleave", leave, { passive: true });
     window.addEventListener("blur", leave);
     document.addEventListener("visibilitychange", vis);
     start();
@@ -203,6 +230,9 @@ export function ParticleField({
       ro.disconnect();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onTap);
+      window.removeEventListener("pointerup", release);
+      window.removeEventListener("pointercancel", leave);
+      document.removeEventListener("pointerleave", leave);
       window.removeEventListener("blur", leave);
       document.removeEventListener("visibilitychange", vis);
       kick.current = () => {};

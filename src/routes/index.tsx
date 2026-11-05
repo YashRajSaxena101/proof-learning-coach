@@ -8,6 +8,7 @@ import { WorkScene } from "@/components/career/WorkScene";
 import { TOPICS } from "@/domain/career/contracts";
 import { exampleScenario } from "@/domain/career/examples";
 import { useMotionPref } from "@/lib/motion-pref";
+import { careerStore } from "@/services/career/store";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -31,6 +32,22 @@ export const Route = createFileRoute("/")({
 });
 function Home() {
   const [topic, setTopic] = useState<string>("AI engineer");
+  const { allowed } = useMotionPref();
+  const chooseDirection = () => {
+    careerStore.init();
+    careerStore.set((state) => ({
+      ...state,
+      profile: {
+        experience: "new",
+        interest: "",
+        goal: "interview",
+        minutes: 15,
+        diagnostic: "",
+        ...state.profile,
+        topic,
+      },
+    }));
+  };
   return (
     <>
       <section className="relative isolate overflow-hidden">
@@ -39,7 +56,7 @@ function Home() {
           density={1.3}
         />
         <div className="hero-legibility mx-auto flex min-h-[650px] max-w-5xl flex-col items-center px-5 pb-16 pt-16 text-center md:pt-24">
-          <p className="kicker">For the work you’re growing into</p>
+          <p className="kicker">Your AI learning coach · for your next role</p>
           <h1 className="mt-6 max-w-4xl text-5xl leading-[1.08] md:text-7xl">
             Proof<span className="text-teal">.</span>
             <br />
@@ -48,17 +65,17 @@ function Home() {
             behind the <em className="font-normal text-teal">interview.</em>
           </h1>
           <p className="hero-reading mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Turn “I’ve learned about it” into “Here’s how I’d approach it.” Rehearse a workplace
-            decision, talk it through, and try a new constraint.
+            Choose a skill. Step into a workplace scenario. Ask your AI coach for help, then
+            practice explaining the decisions you make.
           </p>
           <div className="hero-reading mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" variant="teal">
-              <Link to="/practice" search={{ new: true }}>
+              <Link to="/practice" search={{ new: true }} onClick={chooseDirection}>
                 Build my practice <ArrowRight />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/practice" search={{ example: true }}>
+              <Link to="/practice" search={{ example: true }} onClick={chooseDirection}>
                 Try an example
               </Link>
             </Button>
@@ -76,6 +93,14 @@ function Home() {
               </Button>
             ))}
           </div>
+          {allowed && (
+            <p className="mt-5 text-xs tracking-wide text-muted-foreground">
+              <span className="hidden sm:inline">
+                Move to scatter. Hold the background to gather.
+              </span>
+              <span className="sm:hidden">Tap the background for a ripple.</span>
+            </p>
+          )}
         </div>
       </section>
       <Preview topic={topic} />
@@ -118,12 +143,12 @@ function Home() {
       <section className="border-t border-border px-5 py-16 text-center">
         <h2 className="text-4xl md:text-5xl">Your next step can be a rehearsal.</h2>
         <Button asChild size="lg" variant="teal" className="mt-7">
-          <Link to="/practice" search={{ new: true }}>
+          <Link to="/practice" search={{ new: true }} onClick={chooseDirection}>
             Build my practice <ArrowRight />
           </Link>
         </Button>
         <p className="mt-4 text-sm text-muted-foreground">
-          Start without an account. AI practice uses Ollama. Your career progress stays on this device.
+          Start without an account. Your practice is saved in this browser.
         </p>
       </section>
     </>
@@ -131,7 +156,11 @@ function Home() {
 }
 function Preview({ topic }: { topic: string }) {
   const { allowed } = useMotionPref();
-  return allowed ? <MovingPreview key={topic} topic={topic} /> : <PreviewContent key={topic} topic={topic} />;
+  return allowed ? (
+    <MovingPreview key={topic} topic={topic} />
+  ) : (
+    <PreviewContent key={topic} topic={topic} />
+  );
 }
 function MovingPreview({ topic }: { topic: string }) {
   const ref = useRef<HTMLDivElement>(null);

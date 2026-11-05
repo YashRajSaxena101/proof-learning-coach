@@ -24,16 +24,10 @@ export const profileSchema = z
   .object({
     topic: learnerText(100),
     experience: z.enum(["new", "foundations", "projects"]),
-    interest: z
-      .string()
-      .trim()
-      .max(600),
+    interest: z.string().trim().max(600),
     goal: z.enum(["interview", "workplace", "refresh"]),
     minutes: z.union([z.literal(10), z.literal(15), z.literal(25)]),
-    diagnostic: z
-      .string()
-      .trim()
-      .max(1000),
+    diagnostic: z.string().trim().max(1000),
   })
   .strict();
 export type Profile = z.infer<typeof profileSchema>;
@@ -146,9 +140,28 @@ export const sessionSchema = z
     provider: z.literal("Ollama").optional(),
     model: z.string().min(1).max(100).optional(),
     stage: z.enum(["decisions", "interview", "transfer", "complete"]),
-    drafts: z.object({ decisions: z.string().max(2000).optional(), interview: z.string().max(2000).optional(), transfer: z.string().max(2000).optional() }).strict().optional(),
+    drafts: z
+      .object({
+        decisions: z.string().max(2000).optional(),
+        interview: z.string().max(2000).optional(),
+        transfer: z.string().max(2000).optional(),
+      })
+      .strict()
+      .optional(),
     choices: z.record(z.string()),
-    choiceHistory: z.array(z.object({ decisionId: z.string().max(20), choiceId: z.string().max(20), createdAt: z.string().datetime(), helpUsed: z.number().int().min(0).max(100) }).strict()).max(100).optional(),
+    choiceHistory: z
+      .array(
+        z
+          .object({
+            decisionId: z.string().max(20),
+            choiceId: z.string().max(20),
+            createdAt: z.string().datetime(),
+            helpUsed: z.number().int().min(0).max(100),
+          })
+          .strict(),
+      )
+      .max(100)
+      .optional(),
     answers: z
       .array(
         z
@@ -218,10 +231,10 @@ export const canRequest = (userCount: number, globalCount: number) =>
   userCount < 12 && globalCount < 200;
 export const visibleDecision = (d: z.infer<typeof decisionSchema>, id: string | undefined) =>
   id ? (d.choices.find((c) => c.id === id) ?? null) : null;
-export const nextSuggestion = (gaps: string[]) =>
-  gaps.length
-    ? `Practice ${gaps[0]} in a fresh situation.`
-    : "Try a different constraint and explain how it changes your decision.";
+export const nextSuggestion = (gaps: string[], suggestions: string[] = []) =>
+  suggestions[0] ??
+  gaps[0] ??
+  "Try a different constraint and explain how it changes your decision.";
 export const diagnosticQuestion = (topic: string) =>
   topic === "AI engineer"
     ? "A support assistant must answer from private documents. What would you check before choosing how it learns?"

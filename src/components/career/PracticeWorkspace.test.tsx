@@ -5,22 +5,79 @@ import { exampleScenario } from "@/domain/career/examples";
 import type { Feedback } from "@/domain/career/contracts";
 const mocks = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("@/services/career/coach", () => ({ requestCareerCoach: mocks.call }));
-vi.mock("@tanstack/react-router", () => ({ Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a> }));
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
+}));
 vi.mock("./WorkScene", () => ({ WorkScene: () => null }));
 vi.mock("./SaveNotice", () => ({ SaveNotice: () => null }));
+vi.mock("@/components/fx/ParticleField", () => ({ ParticleField: () => null }));
 import { PracticeWorkspace } from "./PracticeWorkspace";
-const result: Feedback = { mode: "live-ai", provider: "Ollama", model: "test", message: "Feedback for this attempt", strengths: ["Clear constraint"], gaps: ["Evidence"], nextQuestion: "What would you measure?", retrySuggestions: ["State a check"], independent: false };
-function Wrapper() { const s = useCareer().sessions[0]; return s ? <PracticeWorkspace key={s.id} session={s} /> : null; }
+const result: Feedback = {
+  mode: "live-ai",
+  provider: "Ollama",
+  model: "test",
+  message: "Feedback for this attempt",
+  strengths: ["Clear constraint"],
+  gaps: ["Evidence"],
+  nextQuestion: "What would you measure?",
+  retrySuggestions: ["State a check"],
+  independent: false,
+};
+function Wrapper() {
+  const s = useCareer().sessions[0];
+  return s ? <PracticeWorkspace key={s.id} session={s} /> : null;
+}
+it("shows and saves the coach's guiding question with its explanation", async () => {
+  mocks.call.mockResolvedValue(result);
+  render(<Wrapper />);
+  fireEvent.click(screen.getByRole("button", { name: "Explain more simply" }));
+  await waitFor(() => expect(screen.getByText(/What would you measure\?/)).toBeVisible());
+  expect(careerStore.get().sessions[0]?.messages.at(-1)?.text).toBe(
+    "Feedback for this attempt\n\nWhat would you measure?",
+  );
+});
 beforeEach(() => {
-  cleanup(); vi.resetAllMocks();
+  cleanup();
+  vi.resetAllMocks();
   const scenario = exampleScenario("Data analyst");
-  careerStore.set(() => ({ version: 1, sessions: [{ id: "00000000-0000-4000-8000-000000000001", createdAt: "2026-11-05T01:00:00Z", profile: { topic: "Data analyst", experience: "new", interest: "", goal: "interview", minutes: 15, diagnostic: "" }, scenario, source: "live-ai", capability: "test-private-capability", stage: "decisions", choices: { approach: "choice-0", evidence: "trial" }, answers: [], messages: [], helpUsed: 0 }] }));
+  careerStore.set(() => ({
+    version: 1,
+    sessions: [
+      {
+        id: "00000000-0000-4000-8000-000000000001",
+        createdAt: "2026-11-05T01:00:00Z",
+        profile: {
+          topic: "Data analyst",
+          experience: "new",
+          interest: "",
+          goal: "interview",
+          minutes: 15,
+          diagnostic: "",
+        },
+        scenario,
+        source: "live-ai",
+        capability: "test-private-capability",
+        stage: "decisions",
+        choices: { approach: "choice-0", evidence: "trial" },
+        answers: [],
+        messages: [],
+        helpUsed: 0,
+      },
+    ],
+  }));
 });
 it("blocks advancement during delayed feedback and isolates stage drafts and Revise", async () => {
   let resolve: (f: Feedback) => void = () => {};
-  mocks.call.mockImplementation(() => new Promise<Feedback>(r => { resolve = r; }));
+  mocks.call.mockImplementation(
+    () =>
+      new Promise<Feedback>((r) => {
+        resolve = r;
+      }),
+  );
   render(<Wrapper />);
-  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "SELECT SUM(amount) FROM orders" } });
+  fireEvent.change(screen.getByLabelText("Your answer"), {
+    target: { value: "SELECT SUM(amount) FROM orders" },
+  });
   fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
   expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
   await act(async () => resolve(result));
@@ -35,11 +92,21 @@ it("blocks advancement during delayed feedback and isolates stage drafts and Rev
 });
 it("ignores an old response after editing then retrying, and keeps failed attempts explicit", async () => {
   let oldResolve: (f: Feedback) => void = () => {};
-  mocks.call.mockImplementationOnce(() => new Promise<Feedback>(r => { oldResolve = r; })).mockRejectedValueOnce(new Error("Provider unavailable")).mockResolvedValueOnce(result);
+  mocks.call
+    .mockImplementationOnce(
+      () =>
+        new Promise<Feedback>((r) => {
+          oldResolve = r;
+        }),
+    )
+    .mockRejectedValueOnce(new Error("Provider unavailable"))
+    .mockResolvedValueOnce(result);
   render(<Wrapper />);
   fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "First draft" } });
   fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
-  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "Revised draft latency < 100 ms" } });
+  fireEvent.change(screen.getByLabelText("Your answer"), {
+    target: { value: "Revised draft latency < 100 ms" },
+  });
   await act(async () => oldResolve({ ...result, message: "STALE RESPONSE" }));
   expect(screen.queryByText("STALE RESPONSE")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
@@ -49,20 +116,63 @@ it("ignores an old response after editing then retrying, and keeps failed attemp
   expect(screen.getByLabelText("Your answer")).toHaveValue("Revised draft latency < 100 ms");
   fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
   await waitFor(() => expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled());
-  expect(careerStore.get().sessions[0]?.answers.map(a => a.status)).toEqual(["failed", "failed", "complete"]);
+  expect(careerStore.get().sessions[0]?.answers.map((a) => a.status)).toEqual([
+    "failed",
+    "failed",
+    "complete",
+  ]);
 });
 it("revisits a choice, keeps the initial response and help, and requires new feedback", async () => {
   mocks.call.mockResolvedValue(result);
   render(<Wrapper />);
-  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "Initial reasoning" } });
+  fireEvent.change(screen.getByLabelText("Your answer"), {
+    target: { value: "Initial reasoning" },
+  });
   fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
   await waitFor(() => expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled());
   const initial = careerStore.get().sessions[0]?.answers[0];
-  fireEvent.click(screen.getByRole("button", { name: /Revisit decision: What is your first approach/ }));
+  fireEvent.click(
+    screen.getByRole("button", { name: /Revisit decision: What is your first approach/ }),
+  );
   fireEvent.click(screen.getByRole("button", { name: "Remove repeated numeric values" }));
   expect(screen.queryByText("Feedback for this attempt")).toBeNull();
   expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
   expect(careerStore.get().sessions[0]?.answers[0]).toEqual(initial);
-  expect(careerStore.get().sessions[0]?.choiceHistory?.map(c => c.choiceId)).toContain("choice-0");
+  expect(careerStore.get().sessions[0]?.choiceHistory?.map((c) => c.choiceId)).toContain(
+    "choice-0",
+  );
   expect(careerStore.get().sessions[0]?.helpUsed).toBe(0);
+});
+it("records the current draft and choices separately when skipping failed feedback", async () => {
+  mocks.call.mockRejectedValue(new Error("Provider unavailable"));
+  render(<Wrapper />);
+  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "Original answer" } });
+  fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
+  await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Provider unavailable"));
+  fireEvent.click(
+    screen.getByRole("button", { name: /Revisit decision: What is your first approach/ }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Remove repeated numeric values" }));
+  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "" } });
+  expect(screen.getByRole("button", { name: /Skip feedback/ })).toBeDisabled();
+
+  fireEvent.change(screen.getByLabelText("Your answer"), {
+    target: { value: "Updated reasoning" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: /Skip feedback/ }));
+  const session = careerStore.get().sessions[0]!;
+  expect(session.stage).toBe("interview");
+  expect(session.answers).toHaveLength(2);
+  expect(session.answers[0]).toMatchObject({
+    status: "failed",
+    text: "Original answer",
+    choices: { approach: "choice-0", evidence: "trial" },
+  });
+  expect(session.answers[1]).toMatchObject({
+    status: "recorded",
+    text: "Updated reasoning",
+    choices: { approach: "choice-1", evidence: "trial" },
+    helpUsed: 0,
+  });
+  expect(session.answers[1]!.feedback).toBeUndefined();
 });
