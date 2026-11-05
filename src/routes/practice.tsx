@@ -56,6 +56,11 @@ function Practice() {
   const abort = useRef<AbortController | undefined>(undefined);
   useEffect(() => {
     careerStore.init();
+    const saved = careerStore.get().profile;
+    if (saved) {
+      setP(saved);
+      setCustom(!TOPICS.some(t => t === saved.topic));
+    }
   }, []);
   useEffect(() => {
     setWorkspace(!search.new && !search.example);
