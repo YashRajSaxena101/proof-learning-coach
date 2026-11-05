@@ -41,8 +41,8 @@ function About() {
         </p>
         <h2 className="mt-8 text-3xl">Current limits</h2>
         <p className="mt-4 leading-relaxed text-muted-foreground">
-          The career coach requires secure external service deployment before live generation and
-          coaching work. Career progress currently stays in your browser. Existing accounts and the
+          The career coach uses Ollama for generated practice and feedback. Requests are limited;
+          examples remain available if the service cannot respond. Career progress currently stays in your browser. Existing accounts and the
           original sample case are preserved. No learning-outcome pilot has been run.
         </p>
       </section>

@@ -123,7 +123,7 @@ function Home() {
           </Link>
         </Button>
         <p className="mt-4 text-sm text-muted-foreground">
-          Examples work without an account. Live career AI is pending secure service setup.
+          Start without an account. AI practice uses Ollama. Your career progress stays on this device.
         </p>
       </section>
     </>
@@ -160,7 +160,7 @@ function PreviewContent({ topic }: { topic: string }) {
             A fictional team. A concrete constraint. A decision to explain.
           </p>
         </div>
-        <WorkScene key={topic} scene={scenario.scene} metrics={selected?.metrics} />
+        <WorkScene key={topic} scene={scenario.scene} choice={selected ?? undefined} />
       </div>
       <div className="mt-5 flex flex-wrap gap-3">
         {scenario.decisions[0]?.choices.map((c, i) => (
