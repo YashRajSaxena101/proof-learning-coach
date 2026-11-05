@@ -213,7 +213,8 @@
   color: var(--muted-foreground);
 }
 .tour-footer {
-  padding: 0.4rem var(--tour-edge) max(0.9rem, env(safe-area-inset-bottom));
+  /* Leave the hosted project's corner badge clear of the Next control. */
+  padding: 0.4rem var(--tour-edge) calc(3rem + env(safe-area-inset-bottom));
 }
 .tour-progress {
   display: flex;
