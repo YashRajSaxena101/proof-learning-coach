@@ -7,13 +7,11 @@ import { useSession, useSyncStatus } from "@/services/remote-sync";
 import { useLocalPersistence } from "@/services/progress-store";
 import { setMotionPaused, useMotionPref } from "@/lib/motion-pref";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const NAV = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/learn", label: "Simulation" },
-  { to: "/evidence", label: "Evidence" },
-  { to: "/instructor", label: "Instructor" },
-  { to: "/present", label: "Pitch" },
+  { to: "/practice", label: "Practice" },
+  { to: "/dashboard", label: "Progress" },
 ] as const;
 
 function SyncBadge() {
@@ -36,12 +34,12 @@ function SyncBadge() {
 function MotionToggle() {
   const { paused, reduced } = useMotionPref();
   return (
-    <button onClick={() => setMotionPaused(!paused)} disabled={reduced}
+    <Button variant="ghost" size="lg" onClick={() => setMotionPaused(!paused)} disabled={reduced}
       aria-pressed={paused || reduced} aria-label={reduced ? "Motion reduced by system setting" : paused ? "Resume motion" : "Pause motion"}
       title={reduced ? "Reduced motion (system setting)" : paused ? "Resume motion" : "Pause motion"}
-      className="grid size-8 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground disabled:opacity-50">
+      className="grid size-11 place-items-center rounded-full border border-border p-0 text-muted-foreground transition hover:text-foreground disabled:opacity-50">
       {paused || reduced ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
-    </button>
+    </Button>
   );
 }
 
@@ -58,14 +56,14 @@ export function SiteHeader() {
   }, []);
   return (
     <header ref={ref} className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-5 py-2.5">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-2.5 sm:gap-x-4">
         <Link to="/" className="font-display text-2xl font-semibold tracking-tight" aria-label="Proof home">Proof<span className="text-teal">.</span></Link>
-        <nav aria-label="Main" className="order-3 -mx-2 flex w-full gap-0.5 overflow-x-auto text-sm sm:order-none sm:mx-0 sm:w-auto">
+        <nav aria-label="Main" className="flex gap-0.5 text-sm">
           {NAV.map((n) => {
             const active = path === n.to || path.startsWith(n.to + "/");
             return (
               <Link key={n.to} to={n.to} aria-current={active ? "page" : undefined}
-                className={cn("relative whitespace-nowrap rounded-full px-3 py-1.5 transition-colors", active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                preload="intent" className={cn("relative flex min-h-11 items-center whitespace-nowrap rounded-full px-2.5 transition-colors sm:px-3", active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
                 {active && <motion.span layoutId="nav-pill" className="absolute inset-0 -z-10 rounded-full border border-teal/30 bg-teal-soft/70"
                   transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
                 {n.label}
@@ -74,12 +72,11 @@ export function SiteHeader() {
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <SyncBadge />
           <MotionToggle />
           {session ? (
-            <button onClick={() => void supabase.auth.signOut()} className="rounded-full px-3 py-1 text-sm text-muted-foreground hover:bg-muted" title={session.user.email ?? ""}>Sign out</button>
+            <Button variant="ghost" size="lg" onClick={() => void supabase.auth.signOut()} className="px-2 text-sm text-muted-foreground" title={session.user.email ?? ""}>Sign out</Button>
           ) : (
-            <Link to="/auth" className="rounded-full border border-teal/40 px-3 py-1 text-sm font-medium text-teal hover:bg-teal-soft">Sign in</Link>
+            <Button asChild variant="ghost" size="lg" className="px-2"><Link to="/auth">Sign in</Link></Button>
           )}
         </div>
       </div>

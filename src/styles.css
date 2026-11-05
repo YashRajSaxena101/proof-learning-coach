@@ -86,7 +86,7 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  h1, h2, h3 { font-family: var(--font-display); letter-spacing: 0; }
   :focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
 }
 
@@ -128,3 +128,9 @@ h1, h2, h3 { color: var(--color-foreground); }
     opacity: var(--spot, 0); transition: opacity 0.3s; }
 }
 html.motion-paused *, html.motion-paused *::before, html.motion-paused *::after { animation-play-state: paused !important; }
+
+:root { --particle-mint: oklch(0.86 0.16 158); --particle-ivory: oklch(0.95 0.018 85); --particle-cyan: oklch(0.82 0.12 210); --hero-shade: oklch(0.155 0.018 255 / 0.8); }
+.hero-legibility { background: radial-gradient(ellipse at center, var(--hero-shade) 0%, transparent 68%); }
+.career-input { display: block; width: 100%; border: 1px solid var(--input); border-radius: 8px; background: var(--background); padding: 14px; color: var(--foreground); font-size: 16px; line-height: 1.5; }
+.career-input:focus { outline: 2px solid var(--ring); outline-offset: 2px; }
+.work-scene { background: radial-gradient(ellipse at center, var(--teal-soft), transparent 70%); }

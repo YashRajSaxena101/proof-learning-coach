@@ -17,6 +17,7 @@ import { useMotionPref } from "../lib/motion-pref";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useAccountSync } from "../services/remote-sync";
+import { careerStore } from "../services/career/store";
 
 function NotFoundComponent() {
   return (
@@ -83,8 +84,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Proof — AI learning coach for data reasoning" },
-      { name: "description", content: "Proof — interactive data-reasoning learning coach." },
+      { title: "Proof — practice the work behind the interview" },
+      { name: "description", content: "Workplace rehearsals for graduates exploring their next career step." },
       { name: "theme-color", content: "#0f141c" },
     ],
     links: [
@@ -122,6 +123,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useAccountSync();
+  useEffect(() => careerStore.init(), []);
   const { allowed } = useMotionPref();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const main = useRef<HTMLElement>(null);
@@ -139,12 +141,13 @@ function RootComponent() {
         {!bare && <SiteHeader />}
         <main id="main" ref={main} tabIndex={-1} className="outline-none">
           {/* Only route content is keyed — store, auth and header stay mounted across navigation. */}
-          <motion.div key={path} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          <motion.div key={path} initial={allowed ? { opacity: 0, y: 10 } : false} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </motion.div>
         </main>
+        {!bare && <footer className="mx-auto flex max-w-6xl flex-wrap items-center gap-5 border-t border-border px-5 pb-20 pt-8 text-sm text-muted-foreground"><span className="mr-auto font-display text-xl text-foreground">Proof.</span><Link to="/about">About</Link><Link to="/present">Presentation</Link><Link to="/learn">Sample data case</Link></footer>}
       </MotionConfig>
     </QueryClientProvider>
   );
