@@ -15,6 +15,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as EvidenceRouteImport } from './routes/evidence'
 import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as LearnRouteImport } from './routes/learn'
+import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as PresentRouteImport } from './routes/present'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +48,11 @@ const LearnRoute = LearnRouteImport.update({
   path: '/learn',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PresentRoute = PresentRouteImport.update({
   id: '/present',
   path: '/present',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/evidence': typeof EvidenceRoute
   '/instructor': typeof InstructorRoute
   '/learn': typeof LearnRoute
+  '/practice': typeof PracticeRoute
   '/present': typeof PresentRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/evidence': typeof EvidenceRoute
   '/instructor': typeof InstructorRoute
   '/learn': typeof LearnRoute
+  '/practice': typeof PracticeRoute
   '/present': typeof PresentRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/evidence': typeof EvidenceRoute
   '/instructor': typeof InstructorRoute
   '/learn': typeof LearnRoute
+  '/practice': typeof PracticeRoute
   '/present': typeof PresentRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/evidence'
     | '/instructor'
     | '/learn'
+    | '/practice'
     | '/present'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/evidence'
     | '/instructor'
     | '/learn'
+    | '/practice'
     | '/present'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/evidence'
     | '/instructor'
     | '/learn'
+    | '/practice'
     | '/present'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   EvidenceRoute: typeof EvidenceRoute
   InstructorRoute: typeof InstructorRoute
   LearnRoute: typeof LearnRoute
+  PracticeRoute: typeof PracticeRoute
   PresentRoute: typeof PresentRoute
 }
 
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LearnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/present': {
       id: '/present'
       path: '/present'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   EvidenceRoute: EvidenceRoute,
   InstructorRoute: InstructorRoute,
   LearnRoute: LearnRoute,
+  PracticeRoute: PracticeRoute,
   PresentRoute: PresentRoute,
 }
 export const routeTree = rootRouteImport

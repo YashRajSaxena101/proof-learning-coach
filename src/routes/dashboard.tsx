@@ -1,135 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "motion/react";
-import { ArrowRight, Check } from "lucide-react";
-import { Page } from "@/components/SiteHeader";
-import { Button } from "@/components/ui/button";
-import { Tilt } from "@/components/fx/Tilt";
-import { STEPS, completedSteps, earlierHints, outcome } from "@/domain/learning";
-import { progressStore, useProgress } from "@/services/progress-store";
-import { useAuthReady, useSession, useSyncStatus } from "@/services/remote-sync";
-import { cn } from "@/lib/utils";
-import { useMotionPref } from "@/lib/motion-pref";
-
-export const Route = createFileRoute("/dashboard")({
-  head: () => ({
-    meta: [
-      { title: "Your learning workspace — Proof" },
-      { name: "description", content: "Resume The Revenue Mirage, see your step map, hints and attempts recorded so far." },
-      { property: "og:title", content: "Learning workspace — Proof" },
-      { property: "og:description", content: "Your current case, progress map and recorded evidence." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: Dashboard,
-});
-
-const OUTCOME = { not_started: "Not started", in_progress: "In progress", transfer_correct_assisted: "Transfer correct · with help", transfer_correct_unassisted: "Transfer correct · unassisted first try" };
-
-function Orbit({ done, current, animate }: { done: string[]; current: string; animate: boolean }) {
-  const R = 120, C = 150;
-  return (
-    <svg viewBox="0 0 300 300" className="mx-auto w-full max-w-[320px]" role="img" aria-label={`Progress map: ${done.length} of ${STEPS.length} steps completed`}>
-      <circle cx={C} cy={C} r={R} fill="none" stroke="var(--border)" strokeDasharray="2 6" />
-      <motion.circle cx={C} cy={C} r={R} fill="none" stroke="var(--teal)" strokeWidth="2" strokeLinecap="round"
-        transform={`rotate(-90 ${C} ${C})`} initial={animate ? { pathLength: 0 } : false} animate={{ pathLength: done.length / STEPS.length }}
-        transition={animate ? { type: "spring", stiffness: 60, damping: 18 } : { duration: 0 }} />
-      {STEPS.map((s, i) => {
-        const a = (i / STEPS.length) * Math.PI * 2 - Math.PI / 2;
-        const x = C + Math.cos(a) * R, y = C + Math.sin(a) * R;
-        const d = done.includes(s.id), cur = s.id === current;
-        return (
-          <g key={s.id}>
-            {cur && <circle cx={x} cy={y} r="15" fill="var(--glow)" />}
-            <circle cx={x} cy={y} r="9" fill={d ? "var(--teal)" : "var(--card)"} stroke={cur ? "var(--teal)" : "var(--border)"} strokeWidth="1.5" />
-            <text x={x} y={y + 3.5} textAnchor="middle" fontSize="9" fontFamily="JetBrains Mono" fill={d ? "var(--ink)" : "var(--muted-foreground)"}>{i + 1}</text>
-          </g>
-        );
-      })}
-      <text x={C} y={C - 6} textAnchor="middle" fontSize="40" fontFamily="Fraunces" fill="var(--foreground)">{done.length}<tspan fontSize="18" fill="var(--muted-foreground)">/{STEPS.length}</tspan></text>
-      <text x={C} y={C + 20} textAnchor="middle" fontSize="10" fontFamily="JetBrains Mono" fill="var(--muted-foreground)">STEPS COMPLETED</text>
-    </svg>
-  );
-}
-
-function Dashboard() {
-  const p = useProgress();
-  const session = useSession();
-  const ready = useAuthReady();
-  const sync = useSyncStatus();
-  const o = outcome(p);
-  const hints = Object.values(p.hints).reduce((a, b) => a + (b ?? 0), 0);
-  const attempts = p.events.filter((e) => e.kind !== "view" && e.kind !== "hint").length;
-  const cur = STEPS.find((s) => s.id === p.current)!;
-  const fresh = p.events.length === 0;
-  const done = completedSteps(p);
-  const { allowed } = useMotionPref();
-  const label = session ? "Account workspace" : "Browser demo";
-
-  return (
-    <Page>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="kicker">{label}{session?.user.email ? ` · ${session.user.email}` : ""}</p>
-          <h1 className="mt-3 text-5xl font-medium md:text-6xl">{fresh ? "Your first case is ready." : "Welcome back to the case."}</h1>
-        </div>
-        {!session && ready && <Link to="/auth" className="text-sm text-teal underline-offset-4 hover:underline">Sign in to save progress to an account</Link>}
-      </div>
-      {sync.kind === "loading" && <p role="status" className="mt-6 rounded-xl border border-border p-3 font-mono text-xs text-muted-foreground">Loading your saved session…</p>}
-      {sync.kind === "error" && <p role="alert" className="mt-6 rounded-xl border border-destructive/40 bg-warn-soft p-3 text-sm text-destructive">{sync.message}</p>}
-      {!session && <p className="mt-4 text-sm text-muted-foreground">Browser demo: everything below comes from this browser only. Nothing has been sent to an account.</p>}
-
-      <div className="mt-10 grid gap-5 lg:grid-cols-[1.3fr_1fr]">
-        <Tilt className="paper glow-line rounded-3xl p-6 md:p-8">
-          <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Current case · Northstar Supply (fictional)</p>
-          <h2 className="mt-3 text-4xl">The Revenue Mirage</h2>
-          <p className="mt-2 max-w-md text-muted-foreground">A reported jump from $500 to $1,000 — unverified. The CFO wants an answer before signing.</p>
-          <div className="mt-6 flex flex-wrap items-center gap-4">
-            <Button asChild variant="teal" size="lg"><Link to="/learn">{fresh ? "Start the case" : `Continue · ${cur.title}`} <ArrowRight /></Link></Button>
-            <span className="font-mono text-xs text-muted-foreground">Status: {OUTCOME[o]}</span>
-          </div>
-          <ol className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {STEPS.map((s, i) => {
-              const d = done.includes(s.id);
-              return (
-                <li key={s.id} className={cn("flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs", s.id === p.current ? "border-teal/50 bg-teal-soft/60" : "border-border")}>
-                  <span className={cn("grid size-5 place-items-center rounded-full border font-mono text-[10px]", d && "border-teal bg-teal text-ink")}>{d ? <Check className="size-3" /> : i + 1}</span>
-                  <span className="truncate">{s.title}</span>
-                </li>
-              );
-            })}
-          </ol>
-        </Tilt>
-        <div className="paper rounded-3xl p-6"><Orbit done={done} current={p.current} animate={allowed} /></div>
-      </div>
-
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
-        {[["Answers & attempts recorded", attempts], ["Hints revealed", hints], ["Hints before transfer", earlierHints(p)]].map(([k, v]) => (
-          <div key={k} className="paper rounded-2xl p-5"><p className="text-xs text-muted-foreground">{k}</p><p className="mt-2 font-display text-4xl">{v}</p></div>
-        ))}
-      </div>
-
-      <section className="paper mt-5 rounded-3xl p-6">
-        <div className="flex items-center justify-between"><h2 className="text-2xl">Recent evidence</h2><Link to="/evidence" className="text-sm text-teal hover:underline">Full timeline</Link></div>
-        {fresh ? (
-          <p className="mt-4 text-sm text-muted-foreground">Nothing recorded yet. Your first prediction will appear here.</p>
-        ) : (
-          <ul className="mt-4 divide-y divide-border">
-            {p.events.slice(-4).reverse().map((e, i) => (
-              <li key={i} className="flex gap-3 py-3 text-sm">
-                <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", e.correct === true ? "bg-ok" : e.correct === false ? "bg-warn" : "bg-muted-foreground")} />
-                <span className="font-mono text-xs text-muted-foreground w-20 shrink-0">{e.step}</span>
-                <span>{e.detail}{e.assisted && <span className="ml-2 font-mono text-[10px] text-teal">assisted</span>}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      {!fresh && (
-        <button className="mt-6 text-xs text-muted-foreground hover:text-foreground" onClick={() => { if (confirm(session ? "Reset this case for your account?" : "Reset demo progress in this browser?")) progressStore.reset(); }}>
-          Reset case progress
-        </button>
-      )}
-    </Page>
-  );
-}
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowRight, Plus, Check, Clock } from 'lucide-react';
+import { useCareer, careerStore } from '@/services/career/store';
+import { useEffect } from 'react';
+import { nextSuggestion } from '@/domain/career/contracts';
+import { Button } from '@/components/ui/button';
+import { Page } from '@/components/SiteHeader';
+import { WorkScene } from '@/components/career/WorkScene';
+import { SaveNotice } from '@/components/career/SaveNotice';
+import { ParticleField } from '@/components/fx/ParticleField';
+export const Route=createFileRoute('/dashboard')({head:()=>({meta:[{title:'Your practice progress — Proof'},{name:'description',content:'Resume your career practice, revisit your explanations and choose the next rehearsal.'},{property:'og:title',content:'Your practice progress — Proof'},{property:'og:description',content:'Your choices, reflections, help used and next practice.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:CareerDashboard});
+export function CareerDashboard(){const state=useCareer();useEffect(()=>careerStore.init(),[]);const active=state.sessions.find(s=>s.id===state.activeId);const feedback=state.sessions.flatMap(s=>s.answers.flatMap(a=>a.feedback?[a.feedback]:[]));return <Page><div className="relative isolate"><ParticleField density={0.2} className="pointer-events-none absolute inset-0 -z-10 opacity-20"/><p className="kicker">Your progress · career practice</p><h1 className="mt-4 text-4xl md:text-6xl">{active?'Keep building your reasoning.':'A starting point, not a finish line.'}</h1><p className="mt-4 max-w-2xl text-lg text-muted-foreground">{active?`Your current direction: ${active.profile.topic}. Revisit what you tried, and choose one useful next step.`:'Pick a role or a topic you’re curious about. Your first rehearsal can start with “I’m not sure.”'}</p><SaveNotice/></div>
+ {active?<section className="mt-10 grid items-center gap-6 border-y border-border py-8 md:grid-cols-[1.2fr_1fr]"><div><p className="kicker">{active.source==='example'?'Example scenario · not AI generated':'AI-generated practice'}</p><h2 className="mt-3 text-3xl">{active.scenario.title}</h2><p className="mt-3 text-muted-foreground">{active.stage==='complete'?'Practice recorded. Revisit the reasoning or try a new constraint.':`Next: ${active.stage==='decisions'?'rehearse a decision':active.stage==='interview'?'explain your reasoning':'try the transfer question'}.`}</p><Button asChild size="lg" variant="teal" className="mt-6"><Link to="/practice">{active.stage==='complete'?'Revisit practice':'Resume practice'} <ArrowRight/></Link></Button></div><WorkScene scene={active.scenario.scene} compact/></section>:<section className="mt-10 border-y border-border py-10"><h2 className="text-3xl">What would you like to practice?</h2><div className="mt-6 flex flex-wrap gap-3"><Button asChild size="lg" variant="teal"><Link to="/practice" search={{new:true}}>Build my practice <ArrowRight/></Link></Button><Button asChild size="lg" variant="outline"><Link to="/practice" search={{example:true}}>Try an example</Link></Button></div></section>}
+ {state.sessions.length>0&&<><section className="mt-10"><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-3xl">Practice trajectory</h2><Button asChild size="lg" variant="outline"><Link to="/practice" search={{new:true}}><Plus/> Start new</Link></Button></div><ol className="mt-6 border-l border-border pl-6">{state.sessions.map(s=><li className="relative border-b border-border py-5" key={s.id}><span className="absolute -left-9 top-7 grid size-6 place-items-center rounded-full bg-card text-teal">{s.stage==='complete'?<Check className="size-4"/>:<Clock className="size-4"/>}</span><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs text-muted-foreground">{new Date(s.createdAt).toLocaleDateString()} · {s.profile.topic} · {s.source==='example'?'Example':'AI generated'}</p><h3 className="mt-2 text-xl">{s.scenario.title}</h3><p className="mt-2 text-muted-foreground">{s.answers.length} attempts · {s.helpUsed} help requests · {s.stage==='complete'?'practice recorded':'in progress'}</p></div><Button asChild size="lg" variant="ghost"><Link to="/practice" onClick={()=>careerStore.set(v=>({...v,activeId:s.id}))}>Open <ArrowRight/></Link></Button></div>{s.answers.slice(-2).map((a,i)=><details className="mt-4" key={i}><summary className="cursor-pointer py-2 text-sm text-teal">{a.stage} reflection · {a.feedback?'AI feedback available':'not AI evaluated'} · {a.helpUsed?'with help':'no coach help requested'}</summary><p className="mt-2 break-words leading-relaxed">{a.text}</p>{a.feedback&&<p className="mt-3 text-muted-foreground">{a.feedback.message}</p>}</details>)}</li>)}</ol></section><section className="mt-10 border-t border-border pt-7"><p className="kicker">One next step</p><h2 className="mt-3 text-2xl">{nextSuggestion(feedback.at(-1)?.gaps??[])}</h2><p className="mt-3 text-muted-foreground">{feedback.length?'Based on recorded AI feedback in this exercise.':'No AI-evaluated gaps yet. This is an exploration suggestion, not a skill assessment.'}</p><Button asChild size="lg" variant="teal" className="mt-5"><Link to="/practice" search={{new:true}}>Build the next rehearsal <ArrowRight/></Link></Button></section></>}
+ <section className="mt-12 border-t border-border pt-6"><h2 className="text-xl">Original sample data case</h2><p className="mt-2 text-muted-foreground">The Revenue Mirage and its recorded evidence are still available.</p><div className="mt-3 flex flex-wrap gap-3"><Button asChild variant="ghost" size="lg"><Link to="/learn">Open sample case <ArrowRight/></Link></Button><Button asChild variant="ghost" size="lg"><Link to="/evidence">Sample case evidence</Link></Button></div></section></Page>}
