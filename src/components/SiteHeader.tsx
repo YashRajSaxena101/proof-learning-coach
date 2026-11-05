@@ -8,6 +8,7 @@ import { useLocalPersistence } from "@/services/progress-store";
 import { setMotionPaused, useMotionPref } from "@/lib/motion-pref";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { isProgressPath } from "@/lib/navigation-accessibility";
 
 const NAV = [
   { to: "/practice", label: "Practice" },
@@ -60,7 +61,7 @@ export function SiteHeader() {
         <Link to="/" className="font-display text-2xl font-semibold tracking-tight" aria-label="Proof home">Proof<span className="text-teal">.</span></Link>
         <nav aria-label="Main" className="flex gap-0.5 text-sm">
           {NAV.map((n) => {
-            const active = path === n.to || path.startsWith(n.to + "/");
+            const active = n.to === "/dashboard" ? isProgressPath(path) : path === n.to || path.startsWith(n.to + "/");
             return (
               <Link key={n.to} to={n.to} aria-current={active ? "page" : undefined}
                 preload="intent" className={cn("relative flex min-h-11 items-center whitespace-nowrap rounded-full px-2.5 transition-colors sm:px-3", active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>

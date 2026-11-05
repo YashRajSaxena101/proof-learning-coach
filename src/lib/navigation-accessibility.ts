@@ -1,0 +1,3 @@
+export const isProgressPath = (path: string) => path === "/progress" || path === "/dashboard" || path.startsWith("/dashboard/");
+/** Preserve native keyboard activation, editing and selection within controls. */
+export const isPresentationShortcutTarget = (target: EventTarget | null) => !(target instanceof Element && target.closest("button, a, input, textarea, select, [role='button'], [role='slider'], [role='combobox'], [contenteditable]:not([contenteditable='false'])"));

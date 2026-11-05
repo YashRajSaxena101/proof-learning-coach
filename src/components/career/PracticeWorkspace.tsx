@@ -13,7 +13,7 @@ import { requestCareerCoach } from "@/services/career/coach";
 import { WorkScene } from "./WorkScene";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "./SaveNotice";
-import { answerStage, attemptForStage, canAdvance, feedbackRequestGate } from "@/domain/career/attempts";
+import { answerStage, attemptForStage, canAdvance, feedbackRequestGate, reviseChoice, attemptMatchesChoices } from "@/domain/career/attempts";
 
 export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
   const stage = answerStage(s);
@@ -23,6 +23,8 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [offlineNote, setOfflineNote] = useState("");
+  const [editingDecision, setEditingDecision] = useState<string | undefined>();
+  const heading = useRef<HTMLHeadingElement>(null);
   const control = useRef<AbortController | undefined>(undefined);
   const gate = useRef(feedbackRequestGate());
   const current = useRef(s);
@@ -53,11 +55,12 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
     cancel(); setError(""); setOfflineNote("");
     update(v => ({ ...v, drafts: { ...v.drafts, [stage]: text } }));
   };
-  const decision = s.scenario.decisions.find((d) => !s.choices[d.id]);
+  const decision = s.scenario.decisions.find(d => d.id === editingDecision) ?? s.scenario.decisions.find((d) => !s.choices[d.id]);
+  useEffect(() => { heading.current?.focus(); }, [s.id, s.stage, decision?.id]);
   const committed = s.scenario.decisions.flatMap((d) => {
     const c = visibleDecision(d, s.choices[d.id]); return c ? [c] : [];
   });
-  const lastFeedback = currentAttempt?.text === answer ? currentAttempt.feedback : undefined;
+  const lastFeedback = currentAttempt?.text === answer && attemptMatchesChoices(s, currentAttempt) ? currentAttempt.feedback : undefined;
   const reference = REFERENCES[s.profile.topic];
   const advance = () => {
     cancel(); setError(""); setOfflineNote("");
@@ -70,7 +73,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
     setError(""); setOfflineNote("");
     const attemptId = crypto.randomUUID();
     if (action === "feedback") update(v => ({ ...v, drafts: { ...v.drafts, [stage]: text }, answers: [...v.answers, {
-      id: attemptId, createdAt: new Date().toISOString(), stage, text, helpUsed: v.helpUsed,
+      id: attemptId, createdAt: new Date().toISOString(), stage, text, helpUsed: v.helpUsed, choices: { ...v.choices },
       status: s.source === "example" ? "recorded" as const : "pending" as const,
     }].slice(-40) }));
     else update(v => ({ ...v, helpUsed: Math.min(100, v.helpUsed + 1), messages: [...v.messages, { role: "user" as const, text }].slice(-40) }));
@@ -118,14 +121,14 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
       <h1 className="mt-4 max-w-4xl text-4xl leading-tight md:text-5xl">{s.scenario.title}</h1>
       <SaveNotice />
       {s.stage !== "decisions" && (
-        <Button variant="ghost" size="lg" className="mt-4" disabled={busy} onClick={() => {
+        <Button variant="ghost" size="lg" className="mt-4" onClick={() => {
           cancel(); setError(""); setOfflineNote("");
           update(v => ({ ...v, stage: v.stage === "complete" ? "transfer" : v.stage === "transfer" ? "interview" : "decisions" }));
         }}>Back to previous stage</Button>
       )}
       <ol className="mt-7 flex flex-wrap gap-3 border-b border-border pb-5 text-sm">
         {["decisions", "interview", "transfer"].map((v, i) => (
-          <li key={v} className={s.stage === v ? "text-teal" : "text-muted-foreground"}>
+          <li key={v} aria-current={s.stage === v ? "step" : undefined} className={s.stage === v ? "text-teal" : "text-muted-foreground"}>
             {i + 1}.{" "}
             {v === "decisions"
               ? "Rehearse a decision"
@@ -176,15 +179,17 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
                   <p className="kicker">
                     Decision {committed.length + 1} of {s.scenario.decisions.length}
                   </p>
-                  <h2 className="mt-3 text-2xl">{decision.question}</h2>
+                  <h2 ref={heading} tabIndex={-1} className="mt-3 text-2xl">{decision.question}</h2>
                   <div className="mt-5 grid gap-3">
                     {decision.choices.map((c) => (
                       <Button
                         key={c.id}
                         size="lg"
-                        variant="outline"
+                        variant={s.choices[decision.id] === c.id ? "secondary" : "outline"}
+                        aria-pressed={s.choices[decision.id] === c.id}
                         className="h-auto min-h-14 justify-between whitespace-normal rounded-lg py-4 text-left text-base"
-                        onClick={() => { cancel(); update((v) => ({ ...v, choices: { ...v.choices, [decision.id]: c.id } })); }}
+                        disabled={(s.choiceHistory?.length ?? 0) >= 100}
+                        onClick={() => { cancel(); update((v) => reviseChoice(v, decision.id, c.id, new Date().toISOString())); setEditingDecision(undefined); }}
                       >
                         {c.label}
                         <ArrowRight className="shrink-0" />
@@ -200,17 +205,18 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
                   </p>
                 </>
               )}
-              {committed.map((c, i) => (
-                <div className="mt-5 border-l border-teal pl-4" key={`${i}-${c.id}`}>
+              {s.scenario.decisions.flatMap(d => { const c = visibleDecision(d, s.choices[d.id]); return c ? [{ d, c }] : []; }).map(({ d, c }) => (
+                <div className="mt-5 border-l border-teal pl-4" key={d.id}>
                   <p className="font-medium">You chose: {c.label}</p>
                   <p className="mt-2 text-muted-foreground">{c.consequence}</p>
+                  <Button variant="ghost" size="lg" className="mt-2" onClick={() => { cancel(); setEditingDecision(d.id); }} aria-label={`Revisit decision: ${d.question}`}><RefreshCw /> Revisit and compare</Button>
                 </div>
               ))}
             </div>
           )}
           {s.stage !== "complete" && (!decision || s.stage !== "decisions") && (
             <div className="mt-8">
-              <h2 className="text-2xl">
+              <h2 ref={heading} tabIndex={-1} className="text-2xl">
                 {s.stage === "interview"
                   ? "Interview rehearsal"
                   : s.stage === "transfer"
@@ -255,6 +261,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
                 )}
 
               </div>
+              {currentAttempt && !attemptMatchesChoices(s, currentAttempt) && <p role="status" className="mt-3 text-muted-foreground">Your choices changed. The previous reflection is kept in history; submit your reasoning again for this version.</p>}
             </div>
           )}
           {s.stage !== "complete" && lastFeedback && (
@@ -306,7 +313,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
           )}
           {s.stage === "complete" && (
             <div className="mt-8">
-              <h2 className="text-3xl">Practice recorded.</h2>
+              <h2 ref={heading} tabIndex={-1} className="text-3xl">Practice recorded.</h2>
               <p className="mt-3 text-muted-foreground">
                 {s.answers.length} attempts · {s.helpUsed} coach requests.{" "}
                 {s.source === "example"
@@ -409,7 +416,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
               maxLength={2000}
               value={chat}
               onChange={(e) => { if (busy) cancel(); setChat(e.target.value); }}
-              placeholder="What does retrieval mean here?"
+              placeholder={`What should I check in this ${s.profile.topic} task?`}
             />
             <Button
               size="lg"
