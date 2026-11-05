@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { exampleScenario } from "./examples";
-import { profileSchema, requestSchema, type CareerSession, type Feedback } from "./contracts";
+import { profileSchema, requestSchema, scenarioSchema, type CareerSession, type Feedback } from "./contracts";
 import { attemptForStage, canAdvance, latestFeedback, feedbackRequestGate } from "./attempts";
 const feedback: Feedback = { mode: "live-ai", provider: "Ollama", model: "test", message: "Check the boundary", strengths: [], gaps: ["permissions"], nextQuestion: "What would you check?", retrySuggestions: [], independent: false };
 const session = (id: string, createdAt: string): CareerSession => ({ id, createdAt, source: "example", profile: { topic: "Data analyst", experience: "new", interest: "", goal: "interview", minutes: 15, diagnostic: "" }, scenario: exampleScenario("Data analyst"), stage: "decisions", choices: {}, answers: [], messages: [], helpUsed: 0 });
@@ -23,7 +23,9 @@ describe("Career integration regressions", () => {
     const scenario = { ...s, artifacts: [{ label: "SQL query", detail: "SELECT SUM(amount) FROM orders" }, { label: "Latency", detail: "latency < 100 ms; C++" }] };
     // Stored only as inert text; scenario shape and bounds remain unchanged.
     expect(exampleScenario("C++ templates <T>").title.length).toBeLessThanOrEqual(100);
-    expect(scenario.artifacts[0]?.detail).toBe("SELECT SUM(amount) FROM orders");
+    expect(scenarioSchema.safeParse(scenario).success).toBe(true);
+    expect(scenarioSchema.safeParse({ ...scenario, scene: { ...s.scene, seed: -1 } }).success).toBe(false);
+    expect(scenarioSchema.safeParse({ ...scenario, title: "<script>execute()</script>" }).success).toBe(false);
   });
   it("keeps pending and failed live attempts from silently advancing", () => {
     const s = session("a", "2026-11-05T00:00:00Z"); s.source = "live-ai";
