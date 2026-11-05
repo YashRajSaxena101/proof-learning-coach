@@ -10,6 +10,10 @@ The aim is to turn concepts into reasoning a learner can explain: make a choice,
 
 ## Experience
 
+Learners can start with an optional PDF, DOCX, TXT or pasted résumé. The browser extracts an editable excerpt. Explicit AI analysis sends that excerpt through Supabase to Ollama and returns role and skill suggestions with supporting quotations. Only the confirmed practice focus is added to the learning profile.
+
+Proof, the floating comet companion, offers contextual chat, responds to practice feedback and sleeps after one minute of inactivity. The Present link opens a seven-chapter prepared tour with a sample decision, speaker notes, manual or timed playback, and optional browser narration when voices are available.
+
 Six starting directions cover AI engineering, data analysis, software engineering, cloud/DevOps, cybersecurity, and product/business. Learners can enter their own topic. AI generation uses the complete learning profile; fixed examples use only the selected topic and are clearly labeled as non-AI exercises.
 
 The dark interface includes centered interactive canvas particles, scroll-driven storytelling, motion-aware page transitions, an introductory practice studio, and six bounded scene compositions. Generated scenes are validated data, not executable code. Decision consequences appear after the learner commits, and every recorded decision can be inspected separately.

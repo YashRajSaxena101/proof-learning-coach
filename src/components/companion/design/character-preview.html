@@ -1,0 +1,328 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Proof companion — original vector character</title><style>.proof-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 7px 12px #06142555);
+}
+.proof-avatar-body {
+  transform-origin: 90px 175px;
+  animation: proof-bob 4s ease-in-out infinite;
+}
+.proof-avatar-eyes {
+  animation: proof-blink 6.2s infinite;
+}
+.proof-avatar-head {
+  transform-origin: 90px 120px;
+}
+.proof-avatar-flame {
+  transform-origin: 88px 58px;
+  animation: proof-fire 2s ease-in-out infinite alternate;
+}
+.proof-avatar[data-mood="happy"] .proof-avatar-body {
+  animation:
+    proof-bounce 0.65s ease-in-out 3,
+    proof-bob 4s 2s ease-in-out infinite;
+}
+.proof-avatar[data-mood="happy"] .proof-avatar-arm-right {
+  transform-origin: 119px 144px;
+  animation: proof-wave 0.5s ease-in-out 4;
+}
+.proof-avatar[data-mood="sad"] .proof-avatar-head {
+  transform: rotate(-7deg) translateY(4px);
+}
+.proof-avatar[data-mood="sad"] .proof-avatar-body {
+  animation: proof-bob 6s ease-in-out infinite;
+}
+.proof-avatar[data-mood="bored"] .proof-avatar-pupils {
+  animation: proof-glance 4s ease-in-out infinite;
+}
+.proof-avatar[data-mood="bored"] .proof-avatar-head {
+  transform: rotate(6deg);
+}
+.proof-avatar[data-mood="talking"] .proof-avatar-arm-right {
+  transform-origin: 119px 144px;
+  animation: proof-wave 1.2s ease-in-out infinite;
+}
+.proof-avatar[data-mood="talking"] .proof-avatar-mouth {
+  transform-origin: 91px 115px;
+  animation: proof-talk 0.4s ease-in-out infinite alternate;
+}
+.proof-avatar[data-mood="asleep"] .proof-avatar-body {
+  animation: proof-breathe 4s ease-in-out infinite;
+}
+.proof-avatar[data-mood="asleep"] .proof-avatar-head {
+  transform: rotate(9deg) translateY(6px);
+}
+.proof-avatar[data-mood="asleep"] .proof-avatar-eyes {
+  animation: none;
+}
+.proof-avatar-zzz {
+  animation: proof-snooze 3s ease-in-out infinite;
+}
+.proof-avatar[data-motion="off"] *,
+html.motion-paused .proof-avatar * {
+  animation: none !important;
+  transition: none !important;
+}
+@keyframes proof-bob {
+  50% {
+    transform: translateY(-5px) rotate(1deg);
+  }
+}
+@keyframes proof-blink {
+  0%,
+  44%,
+  47%,
+  100% {
+    transform: scaleY(1);
+  }
+  45%,
+  46% {
+    transform: scaleY(0.06);
+  }
+}
+@keyframes proof-fire {
+  to {
+    transform: rotate(3deg) scaleY(1.05);
+  }
+}
+@keyframes proof-bounce {
+  40% {
+    transform: translateY(-12px) rotate(-3deg);
+  }
+  70% {
+    transform: translateY(1px) scaleY(0.97);
+  }
+}
+@keyframes proof-wave {
+  50% {
+    transform: rotate(-20deg);
+  }
+}
+@keyframes proof-glance {
+  40%,
+  65% {
+    transform: translateX(-3px);
+  }
+}
+@keyframes proof-talk {
+  to {
+    transform: scaleY(0.55);
+  }
+}
+@keyframes proof-breathe {
+  50% {
+    transform: translateY(2px) scaleY(1.02);
+  }
+}
+@keyframes proof-snooze {
+  50% {
+    opacity: 0.4;
+    transform: translateY(-7px);
+  }
+}
+.proof-companion {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(78px + env(safe-area-inset-bottom));
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--font-sans, system-ui);
+}
+.proof-companion-launcher {
+  position: relative;
+  width: 92px;
+  height: 118px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 24px;
+}
+.proof-companion-launcher:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 4px;
+}
+.proof-companion-name {
+  position: absolute;
+  bottom: -3px;
+  left: 22px;
+  right: 15px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 11px;
+  color: var(--foreground);
+}
+.proof-companion-bubble {
+  max-width: 245px;
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px 18px 4px 18px;
+  background: var(--card);
+  box-shadow: 0 12px 40px #0003;
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 18px 6px 0;
+  overflow-wrap: anywhere;
+}
+.proof-companion-panel {
+  width: min(360px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--background);
+  box-shadow: 0 18px 70px #0007;
+  margin-bottom: 8px;
+  overflow: hidden;
+  color: var(--foreground);
+}
+.proof-companion-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.proof-companion-panel-head strong {
+  font-size: 16px;
+}
+.proof-companion-controls {
+  display: flex;
+  margin-left: auto;
+  gap: 4px;
+}
+.proof-companion-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+.proof-companion-icon:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+.proof-companion-conversation {
+  max-height: min(35dvh, 270px);
+  overflow-y: auto;
+  padding: 16px;
+  overscroll-behavior: contain;
+}
+.proof-companion-line {
+  font-size: 14px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  margin-bottom: 14px;
+}
+.proof-companion-line small {
+  display: block;
+  color: var(--teal);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+.proof-companion-line[data-role="user"] {
+  padding-left: 14px;
+  border-left: 2px solid var(--border);
+}
+.proof-companion-form {
+  border-top: 1px solid var(--border);
+  padding: 14px 16px;
+}
+.proof-companion-form label {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.proof-companion-form textarea {
+  width: 100%;
+  margin-top: 7px;
+  padding: 10px 12px;
+  resize: vertical;
+  max-height: 120px;
+  min-height: 72px;
+  border: 1px solid var(--input);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.proof-companion-form button {
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 8px 16px;
+  margin-top: 9px;
+  background: var(--teal);
+  color: var(--background);
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+  cursor: pointer;
+}
+.proof-companion-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.proof-companion-meta {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+.proof-companion-error {
+  font-size: 13px;
+  color: var(--warn);
+  line-height: 1.5;
+  margin: 8px 0;
+}
+.proof-companion-restore {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted-foreground);
+  padding: 10px 14px;
+  min-height: 44px;
+  font-size: 12px;
+  cursor: pointer;
+}
+@media (max-width: 639px) {
+  .proof-companion {
+    right: 12px;
+    bottom: calc(94px + env(safe-area-inset-bottom));
+  }
+  .proof-companion-launcher {
+    width: 77px;
+    height: 99px;
+  }
+  .proof-companion-name {
+    left: 16px;
+    right: 10px;
+    font-size: 10px;
+  }
+  .proof-companion-panel {
+    max-height: calc(100dvh - 230px);
+    overflow-y: auto;
+  }
+  .proof-companion-bubble {
+    max-width: min(230px, calc(100vw - 110px));
+    font-size: 12px;
+  }
+  .proof-companion-icon {
+    width: 44px;
+    height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .proof-avatar * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+ body{margin:0;padding:40px;background:#101923;color:#f4f0e4;font:16px system-ui}h1{font-size:28px}main{display:grid;grid-template-columns:repeat(3,minmax(160px,1fr));gap:24px;max-width:1000px;margin:32px auto}.state{border:1px solid #344454;border-radius:24px;padding:24px;text-align:center;background:#162430}.proof-avatar{height:230px}p{color:#b9c7d1}.state h2{font-size:16px;font-weight:500}@media(max-width:600px){main{grid-template-columns:repeat(2,1fr)}body{padding:16px}}</style><h1>Meet Proof</h1><p>An original blue comet. A little fire, a little curiosity, a satchel full of questions.</p><main><section class="state"><svg class="proof-avatar " data-mood="idle" data-motion="on" viewBox="0 0 180 220" role="img" aria-label="Proof, a friendly blue comet companion, idle"><defs><linearGradient id="_R_0_-blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#84e4ff"></stop><stop offset=".5" stop-color="#49abed"></stop><stop offset="1" stop-color="#217bc4"></stop></linearGradient><linearGradient id="_R_0_-fire" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#ffe08a"></stop><stop offset=".45" stop-color="#ffae42"></stop><stop offset="1" stop-color="#f36b36"></stop></linearGradient><linearGradient id="_R_0_-coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#71b789"></stop><stop offset="1" stop-color="#296653"></stop></linearGradient></defs><ellipse class="proof-avatar-shadow" cx="91" cy="207" rx="39" ry="7" fill="#06172b" opacity=".3"></ellipse><g class="proof-avatar-body"><path d="M54 92Q23 108 30 127Q49 119 57 108M130 90Q158 101 150 119Q137 116 125 107" fill="#45a8e5" stroke="#205d8d" stroke-width="2"></path><g class="proof-avatar-legs"><path d="M70 176l-4 23q9 10 23 1l1-24M99 176l1 23q15 8 24-2l-7-22" fill="#3189c9" stroke="#205d8d" stroke-width="2"></path><path d="M65 200q11 6 24 0M101 199q11 6 23-2" fill="none" stroke="#b4edff" stroke-width="3"></path></g><path d="M68 129Q53 144 59 178q31 17 65-1 3-29-16-47" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2.5"></path><path d="M72 130l19 16 17-16-5 34H80z" fill="#f0dfb6"></path><path d="M88 142l-9-5v13l9-4 4 1 10 4v-14l-10 5z" fill="#315b58"></path><circle cx="91" cy="160" r="2.5" fill="#f4cf72"></circle><circle cx="91" cy="173" r="2.5" fill="#f4cf72"></circle><g class="proof-avatar-arm-left"><path d="M65 140q-15 1-19 18l9 6 16-14" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="48" cy="163" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><g class="proof-avatar-arm-right"><path d="M117 141q16 3 19 17l-11 6-14-16" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="133" cy="164" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><path d="M66 133l57 51" stroke="#b58a50" stroke-width="7"></path><path d="M66 132l57 51" stroke="#ecd094" stroke-width="2"></path><g class="proof-avatar-satchel"><rect x="112" y="169" width="29" height="28" rx="6" fill="#a87945" stroke="#644c32" stroke-width="2"></rect><path d="M112 174q14 14 29 0" fill="#c69860" stroke="#644c32" stroke-width="2"></path><rect x="124" y="177" width="6" height="9" rx="2" fill="#f6d17d"></rect></g><g class="proof-avatar-head"><path d="M47 66Q31 55 36 43q15 5 24 11M122 55q14-18 26-17 1 21-13 30" fill="#3b9fdc" stroke="#205d8d" stroke-width="2"></path><path d="M40 89q-2-46 49-51 49-1 53 45 6 49-49 53-51 0-53-47" fill="url(#_R_0_-blue)" stroke="#206a9f" stroke-width="2.5"></path><path d="M52 74q-7-24 9-39 0 14 8 16Q65 24 91 9q-4 22 8 27 5-16 22-17-7 14 3 24 16 11 11 31-8-11-20-12 1 13-13 19-4-20-17-23-9 18-33 16" fill="url(#_R_0_-fire)" stroke="#d26932" stroke-width="2"></path><path class="proof-avatar-flame" d="M75 54q-4-14 10-29-2 16 10 23l-7 15z" fill="#ffe7a0" opacity=".9"></path><ellipse cx="57" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><ellipse cx="121" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><g class="proof-avatar-eyes" style="transform-origin:90px 92px"><ellipse cx="68" cy="94" rx="10" ry="13" fill="#173b55"></ellipse><ellipse cx="112" cy="94" rx="10" ry="13" fill="#173b55"></ellipse><g class="proof-avatar-pupils"><ellipse cx="70" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><ellipse cx="114" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><circle cx="65" cy="89" r="4" fill="#f6fcff"></circle><circle cx="109" cy="89" r="4" fill="#f6fcff"></circle><circle cx="73" cy="99" r="1.7" fill="#f6fcff"></circle><circle cx="117" cy="99" r="1.7" fill="#f6fcff"></circle></g></g><path d="M58 78q9-5 18-1M104 77q9-4 18 1" fill="none" stroke="#28688c" stroke-width="3" stroke-linecap="round"></path><path d="M81 113q10 9 20 0" fill="none" stroke="#23475e" stroke-width="3" stroke-linecap="round"></path></g></g></svg><h2>idle</h2></section><section class="state"><svg class="proof-avatar " data-mood="happy" data-motion="on" viewBox="0 0 180 220" role="img" aria-label="Proof, a friendly blue comet companion, happy"><defs><linearGradient id="_R_0_-blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#84e4ff"></stop><stop offset=".5" stop-color="#49abed"></stop><stop offset="1" stop-color="#217bc4"></stop></linearGradient><linearGradient id="_R_0_-fire" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#ffe08a"></stop><stop offset=".45" stop-color="#ffae42"></stop><stop offset="1" stop-color="#f36b36"></stop></linearGradient><linearGradient id="_R_0_-coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#71b789"></stop><stop offset="1" stop-color="#296653"></stop></linearGradient></defs><ellipse class="proof-avatar-shadow" cx="91" cy="207" rx="39" ry="7" fill="#06172b" opacity=".3"></ellipse><g class="proof-avatar-body"><path d="M54 92Q23 108 30 127Q49 119 57 108M130 90Q158 101 150 119Q137 116 125 107" fill="#45a8e5" stroke="#205d8d" stroke-width="2"></path><g class="proof-avatar-legs"><path d="M70 176l-4 23q9 10 23 1l1-24M99 176l1 23q15 8 24-2l-7-22" fill="#3189c9" stroke="#205d8d" stroke-width="2"></path><path d="M65 200q11 6 24 0M101 199q11 6 23-2" fill="none" stroke="#b4edff" stroke-width="3"></path></g><path d="M68 129Q53 144 59 178q31 17 65-1 3-29-16-47" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2.5"></path><path d="M72 130l19 16 17-16-5 34H80z" fill="#f0dfb6"></path><path d="M88 142l-9-5v13l9-4 4 1 10 4v-14l-10 5z" fill="#315b58"></path><circle cx="91" cy="160" r="2.5" fill="#f4cf72"></circle><circle cx="91" cy="173" r="2.5" fill="#f4cf72"></circle><g class="proof-avatar-arm-left"><path d="M65 140q-15 1-19 18l9 6 16-14" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="48" cy="163" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><g class="proof-avatar-arm-right"><path d="M117 141q16 3 19 17l-11 6-14-16" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="133" cy="164" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><path d="M66 133l57 51" stroke="#b58a50" stroke-width="7"></path><path d="M66 132l57 51" stroke="#ecd094" stroke-width="2"></path><g class="proof-avatar-satchel"><rect x="112" y="169" width="29" height="28" rx="6" fill="#a87945" stroke="#644c32" stroke-width="2"></rect><path d="M112 174q14 14 29 0" fill="#c69860" stroke="#644c32" stroke-width="2"></path><rect x="124" y="177" width="6" height="9" rx="2" fill="#f6d17d"></rect></g><g class="proof-avatar-head"><path d="M47 66Q31 55 36 43q15 5 24 11M122 55q14-18 26-17 1 21-13 30" fill="#3b9fdc" stroke="#205d8d" stroke-width="2"></path><path d="M40 89q-2-46 49-51 49-1 53 45 6 49-49 53-51 0-53-47" fill="url(#_R_0_-blue)" stroke="#206a9f" stroke-width="2.5"></path><path d="M52 74q-7-24 9-39 0 14 8 16Q65 24 91 9q-4 22 8 27 5-16 22-17-7 14 3 24 16 11 11 31-8-11-20-12 1 13-13 19-4-20-17-23-9 18-33 16" fill="url(#_R_0_-fire)" stroke="#d26932" stroke-width="2"></path><path class="proof-avatar-flame" d="M75 54q-4-14 10-29-2 16 10 23l-7 15z" fill="#ffe7a0" opacity=".9"></path><ellipse cx="57" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><ellipse cx="121" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><g class="proof-avatar-eyes" style="transform-origin:90px 92px"><ellipse cx="68" cy="94" rx="10" ry="10" fill="#173b55"></ellipse><ellipse cx="112" cy="94" rx="10" ry="10" fill="#173b55"></ellipse><g class="proof-avatar-pupils"><ellipse cx="70" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><ellipse cx="114" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><circle cx="65" cy="89" r="4" fill="#f6fcff"></circle><circle cx="109" cy="89" r="4" fill="#f6fcff"></circle><circle cx="73" cy="99" r="1.7" fill="#f6fcff"></circle><circle cx="117" cy="99" r="1.7" fill="#f6fcff"></circle></g></g><path d="M58 78q9-5 18-1M104 77q9-4 18 1" fill="none" stroke="#28688c" stroke-width="3" stroke-linecap="round"></path><path d="M78 112q12 18 25 0z" fill="#173b55" stroke="#173b55" stroke-width="2"></path></g><g class="proof-avatar-spark" fill="#f8d378"><path d="M22 69l3 7 8 3-8 3-3 8-3-8-7-3 7-3zM151 103l2 5 6 2-6 2-2 6-2-6-5-2 5-2z"></path></g></g></svg><h2>happy</h2></section><section class="state"><svg class="proof-avatar " data-mood="sad" data-motion="on" viewBox="0 0 180 220" role="img" aria-label="Proof, a friendly blue comet companion, sad"><defs><linearGradient id="_R_0_-blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#84e4ff"></stop><stop offset=".5" stop-color="#49abed"></stop><stop offset="1" stop-color="#217bc4"></stop></linearGradient><linearGradient id="_R_0_-fire" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#ffe08a"></stop><stop offset=".45" stop-color="#ffae42"></stop><stop offset="1" stop-color="#f36b36"></stop></linearGradient><linearGradient id="_R_0_-coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#71b789"></stop><stop offset="1" stop-color="#296653"></stop></linearGradient></defs><ellipse class="proof-avatar-shadow" cx="91" cy="207" rx="39" ry="7" fill="#06172b" opacity=".3"></ellipse><g class="proof-avatar-body"><path d="M54 92Q23 108 30 127Q49 119 57 108M130 90Q158 101 150 119Q137 116 125 107" fill="#45a8e5" stroke="#205d8d" stroke-width="2"></path><g class="proof-avatar-legs"><path d="M70 176l-4 23q9 10 23 1l1-24M99 176l1 23q15 8 24-2l-7-22" fill="#3189c9" stroke="#205d8d" stroke-width="2"></path><path d="M65 200q11 6 24 0M101 199q11 6 23-2" fill="none" stroke="#b4edff" stroke-width="3"></path></g><path d="M68 129Q53 144 59 178q31 17 65-1 3-29-16-47" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2.5"></path><path d="M72 130l19 16 17-16-5 34H80z" fill="#f0dfb6"></path><path d="M88 142l-9-5v13l9-4 4 1 10 4v-14l-10 5z" fill="#315b58"></path><circle cx="91" cy="160" r="2.5" fill="#f4cf72"></circle><circle cx="91" cy="173" r="2.5" fill="#f4cf72"></circle><g class="proof-avatar-arm-left"><path d="M65 140q-15 1-19 18l9 6 16-14" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="48" cy="163" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><g class="proof-avatar-arm-right"><path d="M117 141q16 3 19 17l-11 6-14-16" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="133" cy="164" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><path d="M66 133l57 51" stroke="#b58a50" stroke-width="7"></path><path d="M66 132l57 51" stroke="#ecd094" stroke-width="2"></path><g class="proof-avatar-satchel"><rect x="112" y="169" width="29" height="28" rx="6" fill="#a87945" stroke="#644c32" stroke-width="2"></rect><path d="M112 174q14 14 29 0" fill="#c69860" stroke="#644c32" stroke-width="2"></path><rect x="124" y="177" width="6" height="9" rx="2" fill="#f6d17d"></rect></g><g class="proof-avatar-head"><path d="M47 66Q31 55 36 43q15 5 24 11M122 55q14-18 26-17 1 21-13 30" fill="#3b9fdc" stroke="#205d8d" stroke-width="2"></path><path d="M40 89q-2-46 49-51 49-1 53 45 6 49-49 53-51 0-53-47" fill="url(#_R_0_-blue)" stroke="#206a9f" stroke-width="2.5"></path><path d="M52 74q-7-24 9-39 0 14 8 16Q65 24 91 9q-4 22 8 27 5-16 22-17-7 14 3 24 16 11 11 31-8-11-20-12 1 13-13 19-4-20-17-23-9 18-33 16" fill="url(#_R_0_-fire)" stroke="#d26932" stroke-width="2"></path><path class="proof-avatar-flame" d="M75 54q-4-14 10-29-2 16 10 23l-7 15z" fill="#ffe7a0" opacity=".9"></path><ellipse cx="57" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><ellipse cx="121" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><g class="proof-avatar-eyes" style="transform-origin:90px 92px"><ellipse cx="68" cy="94" rx="10" ry="13" fill="#173b55"></ellipse><ellipse cx="112" cy="94" rx="10" ry="13" fill="#173b55"></ellipse><g class="proof-avatar-pupils"><ellipse cx="70" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><ellipse cx="114" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><circle cx="65" cy="89" r="4" fill="#f6fcff"></circle><circle cx="109" cy="89" r="4" fill="#f6fcff"></circle><circle cx="73" cy="99" r="1.7" fill="#f6fcff"></circle><circle cx="117" cy="99" r="1.7" fill="#f6fcff"></circle></g></g><path d="M58 79q9 2 17-5M104 74q9 7 18 5" fill="none" stroke="#28688c" stroke-width="3" stroke-linecap="round"></path><path d="M82 119q9-8 18 0" fill="none" stroke="#23475e" stroke-width="3" stroke-linecap="round"></path></g></g></svg><h2>sad</h2></section><section class="state"><svg class="proof-avatar " data-mood="bored" data-motion="on" viewBox="0 0 180 220" role="img" aria-label="Proof, a friendly blue comet companion, bored"><defs><linearGradient id="_R_0_-blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#84e4ff"></stop><stop offset=".5" stop-color="#49abed"></stop><stop offset="1" stop-color="#217bc4"></stop></linearGradient><linearGradient id="_R_0_-fire" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#ffe08a"></stop><stop offset=".45" stop-color="#ffae42"></stop><stop offset="1" stop-color="#f36b36"></stop></linearGradient><linearGradient id="_R_0_-coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#71b789"></stop><stop offset="1" stop-color="#296653"></stop></linearGradient></defs><ellipse class="proof-avatar-shadow" cx="91" cy="207" rx="39" ry="7" fill="#06172b" opacity=".3"></ellipse><g class="proof-avatar-body"><path d="M54 92Q23 108 30 127Q49 119 57 108M130 90Q158 101 150 119Q137 116 125 107" fill="#45a8e5" stroke="#205d8d" stroke-width="2"></path><g class="proof-avatar-legs"><path d="M70 176l-4 23q9 10 23 1l1-24M99 176l1 23q15 8 24-2l-7-22" fill="#3189c9" stroke="#205d8d" stroke-width="2"></path><path d="M65 200q11 6 24 0M101 199q11 6 23-2" fill="none" stroke="#b4edff" stroke-width="3"></path></g><path d="M68 129Q53 144 59 178q31 17 65-1 3-29-16-47" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2.5"></path><path d="M72 130l19 16 17-16-5 34H80z" fill="#f0dfb6"></path><path d="M88 142l-9-5v13l9-4 4 1 10 4v-14l-10 5z" fill="#315b58"></path><circle cx="91" cy="160" r="2.5" fill="#f4cf72"></circle><circle cx="91" cy="173" r="2.5" fill="#f4cf72"></circle><g class="proof-avatar-arm-left"><path d="M65 140q-15 1-19 18l9 6 16-14" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="48" cy="163" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><g class="proof-avatar-arm-right"><path d="M117 141q16 3 19 17l-11 6-14-16" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="133" cy="164" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><path d="M66 133l57 51" stroke="#b58a50" stroke-width="7"></path><path d="M66 132l57 51" stroke="#ecd094" stroke-width="2"></path><g class="proof-avatar-satchel"><rect x="112" y="169" width="29" height="28" rx="6" fill="#a87945" stroke="#644c32" stroke-width="2"></rect><path d="M112 174q14 14 29 0" fill="#c69860" stroke="#644c32" stroke-width="2"></path><rect x="124" y="177" width="6" height="9" rx="2" fill="#f6d17d"></rect></g><g class="proof-avatar-head"><path d="M47 66Q31 55 36 43q15 5 24 11M122 55q14-18 26-17 1 21-13 30" fill="#3b9fdc" stroke="#205d8d" stroke-width="2"></path><path d="M40 89q-2-46 49-51 49-1 53 45 6 49-49 53-51 0-53-47" fill="url(#_R_0_-blue)" stroke="#206a9f" stroke-width="2.5"></path><path d="M52 74q-7-24 9-39 0 14 8 16Q65 24 91 9q-4 22 8 27 5-16 22-17-7 14 3 24 16 11 11 31-8-11-20-12 1 13-13 19-4-20-17-23-9 18-33 16" fill="url(#_R_0_-fire)" stroke="#d26932" stroke-width="2"></path><path class="proof-avatar-flame" d="M75 54q-4-14 10-29-2 16 10 23l-7 15z" fill="#ffe7a0" opacity=".9"></path><ellipse cx="57" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><ellipse cx="121" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><g class="proof-avatar-eyes" style="transform-origin:90px 92px"><ellipse cx="68" cy="94" rx="10" ry="13" fill="#173b55"></ellipse><ellipse cx="112" cy="94" rx="10" ry="13" fill="#173b55"></ellipse><g class="proof-avatar-pupils"><ellipse cx="70" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><ellipse cx="114" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><circle cx="65" cy="89" r="4" fill="#f6fcff"></circle><circle cx="109" cy="89" r="4" fill="#f6fcff"></circle><circle cx="73" cy="99" r="1.7" fill="#f6fcff"></circle><circle cx="117" cy="99" r="1.7" fill="#f6fcff"></circle></g></g><path d="M58 78q9-5 18-1M104 77q9-4 18 1" fill="none" stroke="#28688c" stroke-width="3" stroke-linecap="round"></path><path d="M81 113q10 9 20 0" fill="none" stroke="#23475e" stroke-width="3" stroke-linecap="round"></path></g></g></svg><h2>bored</h2></section><section class="state"><svg class="proof-avatar " data-mood="talking" data-motion="on" viewBox="0 0 180 220" role="img" aria-label="Proof, a friendly blue comet companion, talking"><defs><linearGradient id="_R_0_-blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#84e4ff"></stop><stop offset=".5" stop-color="#49abed"></stop><stop offset="1" stop-color="#217bc4"></stop></linearGradient><linearGradient id="_R_0_-fire" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#ffe08a"></stop><stop offset=".45" stop-color="#ffae42"></stop><stop offset="1" stop-color="#f36b36"></stop></linearGradient><linearGradient id="_R_0_-coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#71b789"></stop><stop offset="1" stop-color="#296653"></stop></linearGradient></defs><ellipse class="proof-avatar-shadow" cx="91" cy="207" rx="39" ry="7" fill="#06172b" opacity=".3"></ellipse><g class="proof-avatar-body"><path d="M54 92Q23 108 30 127Q49 119 57 108M130 90Q158 101 150 119Q137 116 125 107" fill="#45a8e5" stroke="#205d8d" stroke-width="2"></path><g class="proof-avatar-legs"><path d="M70 176l-4 23q9 10 23 1l1-24M99 176l1 23q15 8 24-2l-7-22" fill="#3189c9" stroke="#205d8d" stroke-width="2"></path><path d="M65 200q11 6 24 0M101 199q11 6 23-2" fill="none" stroke="#b4edff" stroke-width="3"></path></g><path d="M68 129Q53 144 59 178q31 17 65-1 3-29-16-47" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2.5"></path><path d="M72 130l19 16 17-16-5 34H80z" fill="#f0dfb6"></path><path d="M88 142l-9-5v13l9-4 4 1 10 4v-14l-10 5z" fill="#315b58"></path><circle cx="91" cy="160" r="2.5" fill="#f4cf72"></circle><circle cx="91" cy="173" r="2.5" fill="#f4cf72"></circle><g class="proof-avatar-arm-left"><path d="M65 140q-15 1-19 18l9 6 16-14" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="48" cy="163" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><g class="proof-avatar-arm-right"><path d="M117 141q16 3 19 17l-11 6-14-16" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="133" cy="164" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><path d="M66 133l57 51" stroke="#b58a50" stroke-width="7"></path><path d="M66 132l57 51" stroke="#ecd094" stroke-width="2"></path><g class="proof-avatar-satchel"><rect x="112" y="169" width="29" height="28" rx="6" fill="#a87945" stroke="#644c32" stroke-width="2"></rect><path d="M112 174q14 14 29 0" fill="#c69860" stroke="#644c32" stroke-width="2"></path><rect x="124" y="177" width="6" height="9" rx="2" fill="#f6d17d"></rect></g><g class="proof-avatar-head"><path d="M47 66Q31 55 36 43q15 5 24 11M122 55q14-18 26-17 1 21-13 30" fill="#3b9fdc" stroke="#205d8d" stroke-width="2"></path><path d="M40 89q-2-46 49-51 49-1 53 45 6 49-49 53-51 0-53-47" fill="url(#_R_0_-blue)" stroke="#206a9f" stroke-width="2.5"></path><path d="M52 74q-7-24 9-39 0 14 8 16Q65 24 91 9q-4 22 8 27 5-16 22-17-7 14 3 24 16 11 11 31-8-11-20-12 1 13-13 19-4-20-17-23-9 18-33 16" fill="url(#_R_0_-fire)" stroke="#d26932" stroke-width="2"></path><path class="proof-avatar-flame" d="M75 54q-4-14 10-29-2 16 10 23l-7 15z" fill="#ffe7a0" opacity=".9"></path><ellipse cx="57" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><ellipse cx="121" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><g class="proof-avatar-eyes" style="transform-origin:90px 92px"><ellipse cx="68" cy="94" rx="10" ry="13" fill="#173b55"></ellipse><ellipse cx="112" cy="94" rx="10" ry="13" fill="#173b55"></ellipse><g class="proof-avatar-pupils"><ellipse cx="70" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><ellipse cx="114" cy="96" rx="5" ry="7" fill="#b6874f"></ellipse><circle cx="65" cy="89" r="4" fill="#f6fcff"></circle><circle cx="109" cy="89" r="4" fill="#f6fcff"></circle><circle cx="73" cy="99" r="1.7" fill="#f6fcff"></circle><circle cx="117" cy="99" r="1.7" fill="#f6fcff"></circle></g></g><path d="M58 78q9-5 18-1M104 77q9-4 18 1" fill="none" stroke="#28688c" stroke-width="3" stroke-linecap="round"></path><ellipse class="proof-avatar-mouth" cx="91" cy="115" rx="6" ry="7" fill="#173b55"></ellipse></g></g></svg><h2>talking</h2></section><section class="state"><svg class="proof-avatar " data-mood="asleep" data-motion="on" viewBox="0 0 180 220" role="img" aria-label="Proof, a friendly blue comet companion, asleep"><defs><linearGradient id="_R_0_-blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#84e4ff"></stop><stop offset=".5" stop-color="#49abed"></stop><stop offset="1" stop-color="#217bc4"></stop></linearGradient><linearGradient id="_R_0_-fire" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#ffe08a"></stop><stop offset=".45" stop-color="#ffae42"></stop><stop offset="1" stop-color="#f36b36"></stop></linearGradient><linearGradient id="_R_0_-coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#71b789"></stop><stop offset="1" stop-color="#296653"></stop></linearGradient></defs><ellipse class="proof-avatar-shadow" cx="91" cy="207" rx="39" ry="7" fill="#06172b" opacity=".3"></ellipse><g class="proof-avatar-body"><path d="M54 92Q23 108 30 127Q49 119 57 108M130 90Q158 101 150 119Q137 116 125 107" fill="#45a8e5" stroke="#205d8d" stroke-width="2"></path><g class="proof-avatar-legs"><path d="M70 176l-4 23q9 10 23 1l1-24M99 176l1 23q15 8 24-2l-7-22" fill="#3189c9" stroke="#205d8d" stroke-width="2"></path><path d="M65 200q11 6 24 0M101 199q11 6 23-2" fill="none" stroke="#b4edff" stroke-width="3"></path></g><path d="M68 129Q53 144 59 178q31 17 65-1 3-29-16-47" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2.5"></path><path d="M72 130l19 16 17-16-5 34H80z" fill="#f0dfb6"></path><path d="M88 142l-9-5v13l9-4 4 1 10 4v-14l-10 5z" fill="#315b58"></path><circle cx="91" cy="160" r="2.5" fill="#f4cf72"></circle><circle cx="91" cy="173" r="2.5" fill="#f4cf72"></circle><g class="proof-avatar-arm-left"><path d="M65 140q-15 1-19 18l9 6 16-14" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="48" cy="163" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><g class="proof-avatar-arm-right"><path d="M117 141q16 3 19 17l-11 6-14-16" fill="url(#_R_0_-coat)" stroke="#245c4e" stroke-width="2"></path><ellipse cx="133" cy="164" rx="10" ry="11" fill="url(#_R_0_-blue)" stroke="#246b9d" stroke-width="2"></ellipse></g><path d="M66 133l57 51" stroke="#b58a50" stroke-width="7"></path><path d="M66 132l57 51" stroke="#ecd094" stroke-width="2"></path><g class="proof-avatar-satchel"><rect x="112" y="169" width="29" height="28" rx="6" fill="#a87945" stroke="#644c32" stroke-width="2"></rect><path d="M112 174q14 14 29 0" fill="#c69860" stroke="#644c32" stroke-width="2"></path><rect x="124" y="177" width="6" height="9" rx="2" fill="#f6d17d"></rect></g><g class="proof-avatar-head"><path d="M47 66Q31 55 36 43q15 5 24 11M122 55q14-18 26-17 1 21-13 30" fill="#3b9fdc" stroke="#205d8d" stroke-width="2"></path><path d="M40 89q-2-46 49-51 49-1 53 45 6 49-49 53-51 0-53-47" fill="url(#_R_0_-blue)" stroke="#206a9f" stroke-width="2.5"></path><path d="M52 74q-7-24 9-39 0 14 8 16Q65 24 91 9q-4 22 8 27 5-16 22-17-7 14 3 24 16 11 11 31-8-11-20-12 1 13-13 19-4-20-17-23-9 18-33 16" fill="url(#_R_0_-fire)" stroke="#d26932" stroke-width="2"></path><path class="proof-avatar-flame" d="M75 54q-4-14 10-29-2 16 10 23l-7 15z" fill="#ffe7a0" opacity=".9"></path><ellipse cx="57" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><ellipse cx="121" cy="107" rx="9" ry="5" fill="#dca08e" opacity=".5"></ellipse><g class="proof-avatar-eyes" style="transform-origin:90px 92px"><path d="M58 94q9 9 18 0M104 94q9 9 18 0" fill="none" stroke="#23475e" stroke-width="3.5" stroke-linecap="round"></path></g><path d="M58 78q9-5 18-1M104 77q9-4 18 1" fill="none" stroke="#28688c" stroke-width="3" stroke-linecap="round"></path><path d="M86 116q5 4 10 0" fill="none" stroke="#23475e" stroke-width="3" stroke-linecap="round"></path></g><g class="proof-avatar-zzz" fill="#b5e8fa" font-family="system-ui" font-weight="700"><text x="141" y="65" font-size="15">z</text><text x="151" y="45" font-size="20">z</text></g></g></svg><h2>asleep</h2></section></main><p>Editable SVG shapes · CSS motion · no official character or marks</p></html>

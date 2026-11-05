@@ -9,6 +9,7 @@ import { TOPICS } from "@/domain/career/contracts";
 import { exampleScenario } from "@/domain/career/examples";
 import { useMotionPref } from "@/lib/motion-pref";
 import { careerStore } from "@/services/career/store";
+import { profileForDirection } from "@/domain/career/direction";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -37,24 +38,17 @@ function Home() {
     careerStore.init();
     careerStore.set((state) => ({
       ...state,
-      profile: {
-        experience: "new",
-        interest: "",
-        goal: "interview",
-        minutes: 15,
-        diagnostic: "",
-        ...state.profile,
-        topic,
-      },
+      profile: profileForDirection(topic, state.profile),
     }));
   };
   return (
-    <>
+    <div className="relative isolate">
+      <ParticleField
+        scrollStory
+        className="pointer-events-none fixed inset-0 -z-10 opacity-85"
+        density={1.05}
+      />
       <section className="relative isolate overflow-hidden">
-        <ParticleField
-          className="pointer-events-none absolute inset-0 -z-10 opacity-80"
-          density={1.3}
-        />
         <div className="hero-legibility mx-auto flex min-h-[650px] max-w-5xl flex-col items-center px-5 pb-16 pt-16 text-center md:pt-24">
           <p className="kicker">Your AI learning coach · for your next role</p>
           <h1 className="mt-6 max-w-4xl text-5xl leading-[1.08] md:text-7xl">
@@ -65,8 +59,8 @@ function Home() {
             behind the <em className="font-normal text-teal">interview.</em>
           </h1>
           <p className="hero-reading mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Choose a skill. Step into a workplace scenario. Ask your AI coach for help, then
-            practice explaining the decisions you make.
+            Bring your résumé or choose a skill. Proof turns your experience into a workplace
+            scenario and helps you explain the decisions you make.
           </p>
           <div className="hero-reading mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" variant="teal">
@@ -96,7 +90,7 @@ function Home() {
           {allowed && (
             <p className="mt-5 text-xs tracking-wide text-muted-foreground">
               <span className="hidden sm:inline">
-                Move to scatter. Hold the background to gather.
+                Move to scatter. Hold to gather. Scroll to see the field change shape.
               </span>
               <span className="sm:hidden">Tap the background for a ripple.</span>
             </p>
@@ -116,12 +110,12 @@ function Home() {
             [
               Compass,
               "Start where you are",
-              "Your role, interests and a short starting question shape the rehearsal. Self-report is not a skill score.",
+              "Bring a résumé or choose a topic. Review your practice focus and tell Proof what you want to work on.",
             ],
             [
               MessageCircle,
               "Talk through the unfamiliar",
-              "Ask a guiding question, try a simpler explanation, and revise your reasoning. Help is recorded separately.",
+              "Ask Proof for a small example or a hint. Use what you learn to revise your explanation.",
             ],
             [
               Layers,
@@ -140,8 +134,8 @@ function Home() {
           })}
         </div>
       </section>
-      <section className="border-t border-border px-5 py-16 text-center">
-        <h2 className="text-4xl md:text-5xl">Your next step can be a rehearsal.</h2>
+      <section className="mx-auto max-w-6xl border-t border-border px-5 py-16 text-center md:text-left">
+        <h2 className="text-4xl md:max-w-[17ch] md:text-5xl">What will you practice next?</h2>
         <Button asChild size="lg" variant="teal" className="mt-7">
           <Link to="/practice" search={{ new: true }} onClick={chooseDirection}>
             Build my practice <ArrowRight />
@@ -151,7 +145,7 @@ function Home() {
           Start without an account. Your practice is saved in this browser.
         </p>
       </section>
-    </>
+    </div>
   );
 }
 function Preview({ topic }: { topic: string }) {

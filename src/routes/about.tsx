@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Page } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
+import { ParticleField } from "@/components/fx/ParticleField";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
@@ -24,14 +25,22 @@ export const Route = createFileRoute("/about")({
 function About() {
   return (
     <Page>
-      <p className="kicker">About Proof</p>
-      <h1 className="mt-4 max-w-3xl text-4xl md:text-6xl">
-        Practice the work behind the interview.
-      </h1>
-      <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-        Proof is a workplace rehearsal space for graduates exploring a career. Choose a direction,
-        work through a fictional team request, explain a decision and try a new constraint.
-      </p>
+      <div className="relative isolate overflow-hidden rounded-2xl pb-8">
+        <ParticleField
+          variant="ring"
+          density={0.14}
+          className="pointer-events-none absolute inset-0 -z-10 opacity-35"
+        />
+        <p className="kicker">About Proof</p>
+        <h1 className="mt-4 max-w-3xl text-4xl md:text-6xl">
+          Practice the work behind the interview.
+        </h1>
+        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+          Proof is a workplace rehearsal space for graduates exploring a career. Choose a direction,
+          bring a résumé or a question, work through a fictional team request, explain a decision
+          and try a new constraint.
+        </p>
+      </div>
       <section className="mt-10 max-w-2xl border-t border-border pt-6">
         <h2 className="text-3xl">What your progress means</h2>
         <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -42,8 +51,9 @@ function About() {
         <h2 className="mt-8 text-3xl">Current limits</h2>
         <p className="mt-4 leading-relaxed text-muted-foreground">
           The career coach uses Ollama for generated practice and feedback. Requests are limited;
-          examples remain available if the service cannot respond. Career progress currently stays in your browser. Existing accounts and the
-          original sample case are preserved. No learning-outcome pilot has been run.
+          examples remain available if the service cannot respond. Career progress currently stays
+          in your browser. Existing accounts and the original sample case are preserved. No
+          learning-outcome pilot has been run.
         </p>
       </section>
       <div className="mt-8 flex flex-wrap gap-3">
@@ -53,7 +63,7 @@ function About() {
           </Link>
         </Button>
         <Button asChild size="lg" variant="outline">
-          <Link to="/present">Presentation preview</Link>
+          <Link to="/present">Meet Proof in the guided tour</Link>
         </Button>
         <Button asChild size="lg" variant="ghost">
           <Link to="/instructor">Sample instructor view</Link>

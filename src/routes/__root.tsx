@@ -18,12 +18,14 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useAccountSync } from "../services/remote-sync";
 import { careerStore } from "../services/career/store";
+import { ProofCompanion } from "../components/companion/ProofCompanion";
 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-[70vh] items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <p className="kicker">Off the map</p><h1 className="mt-3 font-display text-8xl font-medium text-foreground">404</h1>
+        <p className="kicker">Off the map</p>
+        <h1 className="mt-3 font-display text-8xl font-medium text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.
@@ -85,13 +87,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Proof — practice the work behind the interview" },
-      { name: "description", content: "Workplace rehearsals for graduates exploring their next career step." },
+      {
+        name: "description",
+        content: "Workplace rehearsals for graduates exploring their next career step.",
+      },
       { name: "theme-color", content: "#0f141c" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -102,7 +110,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
-  pendingComponent: () => <div role="status" className="grid min-h-[50vh] place-items-center font-mono text-xs uppercase tracking-widest text-muted-foreground">Loading…</div>,
+  pendingComponent: () => (
+    <div
+      role="status"
+      className="grid min-h-[50vh] place-items-center font-mono text-xs uppercase tracking-widest text-muted-foreground"
+    >
+      Loading…
+    </div>
+  ),
   errorComponent: ErrorComponent,
 });
 
@@ -129,7 +144,10 @@ function RootComponent() {
   const main = useRef<HTMLElement>(null);
   const first = useRef(true);
   useEffect(() => {
-    if (first.current) { first.current = false; return; }
+    if (first.current) {
+      first.current = false;
+      return;
+    }
     main.current?.focus({ preventScroll: true }); // move focus to new content for keyboard/screen-reader users
   }, [path]);
   const bare = path.startsWith("/present");
@@ -137,17 +155,34 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion={allowed ? "never" : "always"}>
-        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-full focus:bg-teal focus:px-4 focus:py-2 focus:text-ink">Skip to content</a>
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-full focus:bg-teal focus:px-4 focus:py-2 focus:text-ink"
+        >
+          Skip to content
+        </a>
         {!bare && <SiteHeader />}
         <main id="main" ref={main} tabIndex={-1} className="outline-none">
           {/* Only route content is keyed — store, auth and header stay mounted across navigation. */}
-          <motion.div key={path} initial={allowed ? { opacity: 0, y: 10 } : false} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
+          <motion.div
+            key={path}
+            initial={allowed ? { opacity: 0, y: 10 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </motion.div>
         </main>
-        {!bare && <footer className="mx-auto flex max-w-6xl flex-wrap items-center gap-5 border-t border-border px-5 pb-20 pt-8 text-sm text-muted-foreground"><span className="mr-auto font-display text-xl text-foreground">Proof.</span><Link to="/about">About</Link><Link to="/present">Presentation</Link><Link to="/learn">Sample data case</Link></footer>}
+        {!bare && (
+          <footer className="mx-auto flex max-w-6xl flex-wrap items-center gap-5 border-t border-border pb-28 pl-5 pr-28 pt-8 text-sm text-muted-foreground">
+            <span className="mr-auto font-display text-xl text-foreground">Proof.</span>
+            <Link to="/about">About</Link>
+            <Link to="/present">Present</Link>
+            <Link to="/learn">Sample data case</Link>
+          </footer>
+        )}
+        {!bare && <ProofCompanion />}
       </MotionConfig>
     </QueryClientProvider>
   );

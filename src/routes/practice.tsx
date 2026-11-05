@@ -9,6 +9,8 @@ import { requestCareerCoach } from "@/services/career/coach";
 import { PracticeWorkspace } from "@/components/career/PracticeWorkspace";
 import { ParticleField } from "@/components/fx/ParticleField";
 import { SaveNotice } from "@/components/career/SaveNotice";
+import { ResumeOnboarding } from "@/components/resume/ResumeOnboarding";
+import { applyResumeSuggestions } from "@/domain/resume/profile";
 export const Route = createFileRoute("/practice")({
   validateSearch: (s: Record<string, unknown>): { new?: boolean; example?: boolean } => ({
     new: s["new"] === true || s["new"] === "true",
@@ -54,6 +56,7 @@ function Practice() {
   const [error, setError] = useState("");
   const gate = useRef(latestRequest());
   const abort = useRef<AbortController | undefined>(undefined);
+  const resumeFocus = useRef<{ topic: string; interest: string } | undefined>(undefined);
   const setupContent = useRef<HTMLDivElement>(null);
   const activeId = active?.id;
   useEffect(() => {
@@ -86,6 +89,12 @@ function Practice() {
     gate.current.cancel();
     abort.current?.abort();
     setBusy(false);
+    const previousResume = resumeFocus.current;
+    if (previousResume && next.topic !== undefined && next.topic !== previousResume.topic) {
+      if (p.interest === previousResume.interest && next.interest === undefined)
+        next = { ...next, interest: "" };
+      resumeFocus.current = undefined;
+    }
     const value = { ...p, ...next };
     setP(value);
     const parsed = profileSchema.safeParse(value);
@@ -253,6 +262,16 @@ function Practice() {
                   placeholder="For example, robotics or UX research"
                 />
               </label>
+            )}
+            {!search.example && (
+              <ResumeOnboarding
+                onApply={(topic, interest) => {
+                  setCustom(!TOPICS.some((t) => t === topic));
+                  const next = applyResumeSuggestions(p, topic, interest);
+                  change(next);
+                  resumeFocus.current = { topic: next.topic, interest: next.interest };
+                }}
+              />
             )}
           </>
         )}

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, ArrowRight, Compass, MessageCircle, Repeat2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TOPICS, REFERENCES, type Profile } from "@/domain/career/contracts";
+import { TOPICS, REFERENCES } from "@/domain/career/contracts";
+import { profileForDirection } from "@/domain/career/direction";
 import { exampleScenario } from "@/domain/career/examples";
 import { careerStore } from "@/services/career/store";
 import { WorkScene } from "./WorkScene";
@@ -14,15 +15,7 @@ export function CareerLaunchpad() {
   const chooseDirection = () =>
     careerStore.set((state) => ({
       ...state,
-      profile: {
-        experience: "new",
-        interest: "",
-        goal: "interview",
-        minutes: 15,
-        diagnostic: "",
-        ...state.profile,
-        topic,
-      } satisfies Profile,
+      profile: profileForDirection(topic, state.profile),
     }));
   return (
     <section className="mt-10" aria-label="Explore your next practice">

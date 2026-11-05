@@ -1,15 +1,18 @@
 import { useEffect, useRef } from "react";
 import { useMotionPref, motionAllowedNow } from "@/lib/motion-pref";
 import { cn } from "@/lib/utils";
+import { storyShape, storyWeights } from "./particle-shapes";
 /** Cached glow sprites, batched spring dynamics and no frame-driven React state. */
 export function ParticleField({
   className,
   density = 1,
   variant = "spiral",
+  scrollStory = false,
 }: {
   className?: string;
   density?: number;
   variant?: "spiral" | "ring";
+  scrollStory?: boolean;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const { allowed } = useMotionPref();
@@ -52,6 +55,7 @@ export function ParticleField({
       z: Math.random(),
       size: i % 47 === 0 ? 4 + Math.random() : 1.5 + Math.random() * 2,
       color: i % 11 === 0 ? 2 : i % 3 === 0 ? 1 : 0,
+      shape: scrollStory ? storyShape(i, N, (i % 19) / 18) : undefined,
       x: 0,
       y: 0,
       vx: 0,
@@ -64,6 +68,11 @@ export function ParticleField({
       last = 0;
     const pointer = { x: 0, y: 0, active: false, pressed: false };
     let ripple: { x: number; y: number; at: number } | undefined;
+    let progress = 0;
+    let scrollRange = 1;
+    const onScroll = () => {
+      progress = Math.max(0, Math.min(1, window.scrollY / scrollRange));
+    };
     const resize = () => {
       const rect = cv.getBoundingClientRect();
       W = rect.width;
@@ -71,12 +80,26 @@ export function ParticleField({
       cv.width = Math.round(W * dpr);
       cv.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      scrollRange = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      onScroll();
     };
+    let weights = storyWeights(0);
     const home = (p: (typeof points)[number], t: number) => {
       const a = p.a + t * 0.000035;
+      const x = W / 2 + Math.cos(a) * p.r * W * 0.49;
+      const y = H / 2 + Math.sin(a) * p.r * H * 0.44 * (0.55 + p.z * 0.4);
+      if (!p.shape || weights.field === 1) return { x, y };
+      const size = Math.min(W, H);
+      const centerX = W * (W < 640 ? 0.5 : 0.76);
       return {
-        x: W / 2 + Math.cos(a) * p.r * W * 0.49,
-        y: H / 2 + Math.sin(a) * p.r * H * 0.44 * (0.55 + p.z * 0.4),
+        x:
+          x * weights.field +
+          (centerX + size * p.shape.orbitX) * weights.orbit +
+          (centerX + size * p.shape.bookX) * weights.book,
+        y:
+          y * weights.field +
+          (H * 0.45 + size * p.shape.orbitY) * weights.orbit +
+          (H * 0.5 + size * p.shape.bookY) * weights.book,
       };
     };
     resize();
@@ -90,6 +113,8 @@ export function ParticleField({
       const dt = last ? Math.min(2, Math.max(0.25, (t - last) / (1000 / 60))) : 1;
       ctx.clearRect(0, 0, W, H);
       ctx.globalCompositeOperation = "lighter";
+      weights = storyWeights(scrollStory ? progress : 0);
+      const storyAlpha = scrollStory ? 0.42 + weights.field * 0.58 : 1;
       for (const p of points) {
         const h = home(p, t);
         if (moving) {
@@ -130,11 +155,11 @@ export function ParticleField({
         }
         const centerDistance = Math.hypot((p.x - W / 2) / (W * 0.36), (p.y - H / 2) / (H * 0.35));
         const legibility = density >= 1 && centerDistance < 1 ? 0.12 + centerDistance * 0.65 : 1;
-        ctx.globalAlpha = (0.18 + p.z * 0.45) * legibility;
+        ctx.globalAlpha = (0.18 + p.z * 0.45) * legibility * storyAlpha;
         const size = p.size * (1 + p.z * 0.25);
         const sprite = sprites[p.color];
         if (sprite) ctx.drawImage(sprite, p.x - size * 2, p.y - size * 2, size * 4, size * 4);
-        ctx.globalAlpha = (0.45 + p.z * 0.4) * legibility;
+        ctx.globalAlpha = (0.45 + p.z * 0.4) * legibility * storyAlpha;
         ctx.fillStyle = colors[p.color] ?? colors[0] ?? css.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2);
@@ -146,6 +171,10 @@ export function ParticleField({
     const loop = (t: number) => {
       raf = 0;
       if (!visible || document.hidden || !enabled.current) return;
+      if (last && t - last < (density < 0.5 ? 30 : 15)) {
+        raf = requestAnimationFrame(loop);
+        return;
+      }
       draw(t, true);
       last = t;
       raf = requestAnimationFrame(loop);
@@ -178,6 +207,10 @@ export function ParticleField({
       if (!raf) draw(last, false);
     });
     ro.observe(cv);
+    if (scrollStory) {
+      ro.observe(document.body);
+      window.addEventListener("scroll", onScroll, { passive: true });
+    }
     const onMove = (e: PointerEvent) => {
       if (!enabled.current || e.pointerType === "touch") return;
       const r = cv.getBoundingClientRect();
@@ -228,6 +261,7 @@ export function ParticleField({
       cancelAnimationFrame(raf);
       io.disconnect();
       ro.disconnect();
+      if (scrollStory) window.removeEventListener("scroll", onScroll);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onTap);
       window.removeEventListener("pointerup", release);
@@ -237,7 +271,7 @@ export function ParticleField({
       document.removeEventListener("visibilitychange", vis);
       kick.current = () => {};
     };
-  }, [density, variant]);
+  }, [density, variant, scrollStory]);
   return (
     <div className={cn("relative", className)} aria-hidden>
       <canvas ref={ref} className="absolute inset-0 size-full" />

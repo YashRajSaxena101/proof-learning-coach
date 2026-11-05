@@ -13,6 +13,7 @@ import { isProgressPath } from "@/lib/navigation-accessibility";
 const NAV = [
   { to: "/practice", label: "Practice" },
   { to: "/dashboard", label: "Progress" },
+  { to: "/present", label: "Present" },
 ] as const;
 
 function SyncBadge() {
@@ -102,7 +103,7 @@ export function SiteHeader() {
       ref={ref}
       className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl"
     >
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-1 gap-y-2 px-3 py-2.5 sm:gap-x-4 sm:px-4">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-y-2 px-2 py-2.5 sm:gap-x-4 sm:px-4">
         <Link
           to="/"
           className="font-display text-xl font-semibold tracking-tight sm:text-2xl"
@@ -123,7 +124,7 @@ export function SiteHeader() {
                 aria-current={active ? "page" : undefined}
                 preload="intent"
                 className={cn(
-                  "relative flex min-h-11 items-center whitespace-nowrap rounded-full px-2 transition-colors sm:px-3",
+                  "relative flex min-h-11 items-center whitespace-nowrap rounded-full px-1.5 transition-colors sm:px-3",
                   active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -141,7 +142,7 @@ export function SiteHeader() {
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
           <MotionToggle />
           {session ? (
             <Button

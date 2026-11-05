@@ -1,11 +1,78 @@
-export interface Slide { title:string;kicker:string;body:React.ReactNode;notes:string;demoCue?:boolean }
-export const SLIDES:Slide[]=[
- {kicker:'01 · Proof',title:'Practice the work behind the interview.',body:<p className="max-w-4xl text-2xl leading-relaxed">A workplace rehearsal space for graduates exploring what comes next.</p>,notes:'Open with the graduate audience, not a claim about job readiness.'},
- {kicker:'02 · The learning question',title:'Can you explain the decision?',body:<p className="max-w-4xl text-2xl leading-relaxed">Knowing a term is a starting point. A fictional team request gives you a reason to use it, question it, and explain a tradeoff.</p>,notes:'This is a product hypothesis, not an empirical finding.'},
- {kicker:'03 · A rehearsal',title:'Your direction. A concrete constraint.',body:<p className="max-w-4xl text-2xl leading-relaxed">For AI-generated practice, choose a role, interest, goal and session length. A starting answer adds context, not a proficiency score. Fixed examples use only the topic.</p>,notes:'Show the four short AI setup views. Fixed examples skip calibration; custom examples are general reasoning templates.'},
- {kicker:'04 · Demo',title:'Build a private-docs assistant.',demoCue:true,body:<p className="max-w-4xl text-2xl leading-relaxed">Try the clearly labeled example: inspect the team notes, make a choice, explain a constraint, then rehearse a new situation.</p>,notes:'Switch to /practice?example=true. Examples are not AI generated or AI evaluated. The original data case is retained.'},
- {kicker:'05 · Your coach',title:'Questions before solutions.',body:<p className="max-w-4xl text-2xl leading-relaxed">The career coaching interface supports guiding questions, simpler explanations, feedback and revision. Live responses come from Ollama through the separate career coach service. Clearly labeled examples remain available.</p>,notes:'Do not simulate a live response. Live responses must be shown as returned, never simulated. Career progress remains device-only.'},
- {kicker:'06 · Evidence',title:'Record practice, not a promise.',body:<p className="max-w-4xl text-2xl leading-relaxed">Choices, reflections and help requests remain distinct. Career progress stays in this browser. Existing accounts and original sample-case records are preserved.</p>,notes:'No fabricated scores. Browser history is not authoritative AI evaluation.'},
- {kicker:'07 · Validation',title:'A pilot still to run.',body:<p className="max-w-4xl text-2xl leading-relaxed">We would test whether rehearsal helps graduates explain decisions and adapt to a new constraint. No efficacy pilot has been run; there are no outcome statistics to report.</p>,notes:'Distinguish software checks from learning efficacy.'},
- {kicker:'08 · Your next step',title:'Start with curiosity.',body:<p className="max-w-4xl text-2xl leading-relaxed">Try a workplace example at <span className="text-teal">/practice</span>. Bring a question, make a choice, and explain your reasoning.</p>,notes:'Invite hands-on exploration. No job guarantee.'}
-];
+export const SLIDES = [
+  {
+    chapter: "Meet Proof",
+    title: "Practice the work behind the interview.",
+    detail: "A personalized learning coach for graduates preparing for their first role.",
+    narration:
+      "Hi, I’m Proof. Bring me a role you want or a résumé you’re working from. We’ll turn something you’ve learned into a decision you can explain in an interview.",
+    notes:
+      "Introduce the graduate audience. This guided example uses fictional résumé details. The Practice page runs live coaching.",
+    seconds: 13,
+  },
+  {
+    chapter: "The problem",
+    title: "A term is easy to remember. A decision takes practice.",
+    detail:
+      "A graduate can define a database transaction and still struggle to explain what to do when a payment times out.",
+    narration:
+      "Imagine an interviewer asks what happens when checkout times out after the customer has paid. You know the vocabulary. Now you need to explain what you’d check before retrying.",
+    notes:
+      "Read the interviewer’s question. Ask the judges to think of one piece of evidence they would want.",
+    seconds: 14,
+  },
+  {
+    chapter: "Personalization",
+    title: "Start with the work you already know.",
+    detail:
+      "Upload a résumé, review its text, and choose which suggested role, skills, and practice focus to use.",
+    narration:
+      "This learner built a checkout API and wants a backend role. I suggest practicing safe retries. They can edit that focus, tell me how experienced they are, and ask for the specific help they want.",
+    notes:
+      "In Practice, a user can bring a file, paste text or skip the résumé. Only reviewed text goes to the AI for analysis. The learner confirms the focus.",
+    seconds: 15,
+  },
+  {
+    chapter: "Workplace rehearsal",
+    title: "Would you retry the payment?",
+    detail:
+      "The gateway timed out. A teammate wants to retry immediately. Pick an approach and inspect its consequence.",
+    narration:
+      "Here’s your team’s request. We want to recover the checkout without charging the customer twice. Choose an approach. I’ll show what your decision changes, and what remains uncertain.",
+    notes:
+      "Invite a judge to choose either response. These are prepared tour choices. The actual coach generates a new scenario from the profile.",
+    seconds: 17,
+  },
+  {
+    chapter: "Contextual tutoring",
+    title: "Ask the question holding you back.",
+    detail:
+      "Proof can explain a concept, offer another example, or help you revise an answer in the context of your task.",
+    narration:
+      "A timeout leaves the outcome uncertain. Let’s look up the payment before sending another charge. What identifier would let you match the retry to the original purchase?",
+    notes:
+      "The illustrated exchange is prepared for the tour. Live tutor and companion replies use Ollama through the external Supabase function.",
+    seconds: 14,
+  },
+  {
+    chapter: "Transfer",
+    title: "Change one constraint. Try the reasoning again.",
+    detail:
+      "Explain the decision in interview language, then test it when the same problem arrives in a different form.",
+    narration:
+      "Now the duplicate comes from a delayed webhook instead of a checkout retry. Which part of your approach still works? Your decisions, explanations, and help requests give you something concrete to revisit.",
+    notes:
+      "Evidence records what the learner did and how their reasoning evolved. Learning gains still need a learner pilot.",
+    seconds: 15,
+  },
+  {
+    chapter: "Try Proof",
+    title: "Bring one question from your next interview.",
+    detail:
+      "Choose a role or topic, describe what you want help with, and rehearse your first decision.",
+    narration:
+      "Try a live practice with your own interests, or open a fixed example right away. I’ll be in the corner if you have a question. A new constraint will be waiting when you’re ready.",
+    notes:
+      "Open the public practice if time allows. Career practice saves in this browser. Fixed examples remain available during service limits.",
+    seconds: 12,
+  },
+] as const;
