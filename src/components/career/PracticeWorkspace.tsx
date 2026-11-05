@@ -63,7 +63,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
   const lastFeedback = currentAttempt?.text === answer && attemptMatchesChoices(s, currentAttempt) ? currentAttempt.feedback : undefined;
   const reference = REFERENCES[s.profile.topic];
   const advance = () => {
-    cancel(); setError(""); setOfflineNote("");
+    cancel(); setError(""); setOfflineNote(""); setEditingDecision(undefined);
     update(v => ({ ...v, stage: v.stage === "decisions" ? "interview" : v.stage === "interview" ? "transfer" : "complete" }));
   };
   async function call(action: "tutor" | "feedback", text: string, intent: "hint" | "simpler" | "example" | "answer") {
@@ -119,10 +119,11 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
         </Button>
       </div>
       <h1 className="mt-4 max-w-4xl text-4xl leading-tight md:text-5xl">{s.scenario.title}</h1>
+      {s.source === "example" && <p className="mt-3 leading-relaxed text-muted-foreground">Fixed topic example, not personalized from your experience or starting answer. Custom-topic examples are general reasoning templates, not specialist guidance.</p>}
       <SaveNotice />
       {s.stage !== "decisions" && (
         <Button variant="ghost" size="lg" className="mt-4" onClick={() => {
-          cancel(); setError(""); setOfflineNote("");
+          cancel(); setError(""); setOfflineNote(""); setEditingDecision(undefined);
           update(v => ({ ...v, stage: v.stage === "complete" ? "transfer" : v.stage === "transfer" ? "interview" : "decisions" }));
         }}>Back to previous stage</Button>
       )}

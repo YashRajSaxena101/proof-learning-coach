@@ -35,6 +35,7 @@ function Present() {
     timer.current = setInterval(() => setSecs((s) => (s && s > 0 ? s - 1 : 0)), 1000);
   }, []);
   useEffect(() => () => { if (timer.current) clearInterval(timer.current); }, []);
+  useEffect(() => { if (secs === 0 && timer.current) { clearInterval(timer.current); timer.current = null; } }, [secs]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || !isPresentationShortcutTarget(e.target)) return;
