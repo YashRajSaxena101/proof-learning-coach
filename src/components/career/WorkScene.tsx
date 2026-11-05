@@ -69,9 +69,11 @@ export function WorkScene({ scene, choice, compact = false }: {
           const bend = scene.domain === "cloud" || scene.domain === "product" ? 0 : -30;
           const d = `M${a.x} ${a.y} Q${(a.x + b.x) / 2} ${(a.y + b.y) / 2 + bend} ${b.x} ${b.y}`;
           const focus = selectedNode?.id === edge.from || selectedNode?.id === edge.to;
+          const heldAtBoundary = scene.domain === "security" && effect.constrained && (a.node.kind === "boundary" || b.node.kind === "output");
           return <g key={`${edge.from}-${edge.to}`} opacity={focus || choice ? 1 : 0.6}>
             <path d={d} fill="none" stroke={focus ? tone : "var(--border)"} strokeWidth={choice ? 2.5 : 1.5} markerEnd={`url(#${id}-arrow)`} strokeDasharray={effect.constrained ? "5 6" : undefined} />
-            {allowed && Array.from({ length: scene.domain === "ai" ? effect.evidenceCount : 1 }, (_, packet) => <circle key={packet} r={scene.domain === "data" ? 3 : 4} fill={tone}>
+            {heldAtBoundary && <text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 18} textAnchor="middle" fill="var(--warn)" fontSize="12">Held for review</text>}
+            {allowed && !heldAtBoundary && Array.from({ length: scene.domain === "ai" ? effect.evidenceCount : 1 }, (_, packet) => <circle key={packet} r={scene.domain === "data" ? 3 : 4} fill={tone}>
               <animateMotion dur={`${effect.duration}s`} repeatCount="indefinite" begin={`${i * 0.3 + packet * 0.6}s`} path={d} />
             </circle>)}
           </g>;
