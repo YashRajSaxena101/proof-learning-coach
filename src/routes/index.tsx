@@ -131,7 +131,7 @@ function Home() {
 }
 function Preview({ topic }: { topic: string }) {
   const { allowed } = useMotionPref();
-  return allowed ? <MovingPreview topic={topic} /> : <PreviewContent topic={topic} />;
+  return allowed ? <MovingPreview key={topic} topic={topic} /> : <PreviewContent key={topic} topic={topic} />;
 }
 function MovingPreview({ topic }: { topic: string }) {
   const ref = useRef<HTMLDivElement>(null);

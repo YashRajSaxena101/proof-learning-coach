@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ const DEFAULT: Profile = {
   diagnostic: "",
 };
 function Practice() {
+  const navigate = useNavigate();
   const state = useCareer();
   const search = Route.useSearch();
   const active = state.sessions.find((v) => v.id === state.activeId);
@@ -67,12 +68,10 @@ function Practice() {
     [],
   );
   const change = (next: Partial<Profile>) => {
-    setP((v) => {
-      const value = { ...v, ...next };
-      const parsed = profileSchema.safeParse(value);
-      if (parsed.success) careerStore.set((s) => ({ ...s, profile: parsed.data }));
-      return value;
-    });
+    const value = { ...p, ...next };
+    setP(value);
+    const parsed = profileSchema.safeParse(value);
+    if (parsed.success) careerStore.set((s) => ({ ...s, profile: parsed.data }));
   };
   function example() {
     const parsed = profileSchema.safeParse(p);
@@ -93,6 +92,7 @@ function Practice() {
       helpUsed: 0,
     });
     setWorkspace(true);
+    void navigate({ to: '/practice', search: {}, replace: true });
     setError("");
   }
   async function generate() {
@@ -126,6 +126,7 @@ function Practice() {
           helpUsed: 0,
         });
         setWorkspace(true);
+        void navigate({ to: '/practice', search: {}, replace: true });
       }
     } catch (e) {
       if (gate.current.current(id))

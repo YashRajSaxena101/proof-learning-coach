@@ -6,6 +6,7 @@ import {
   visibleDecision,
   REFERENCES,
   nextSuggestion,
+  requestSchema,
 } from "@/domain/career/contracts";
 import { careerStore, latestRequest } from "@/services/career/store";
 import { requestCareerCoach } from "@/services/career/coach";
@@ -43,6 +44,10 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
     intent: "hint" | "simpler" | "example" | "answer",
   ) {
     if (!text.trim() || busy) return;
+    if (!requestSchema.safeParse({ action, sessionId: s.id, text, intent, stage, choices: s.choices }).success) {
+      setError('Use a plain-text question or answer, up to 2,000 characters.');
+      return;
+    }
     setError("");
     setOfflineNote("");
     if (action === "feedback")
@@ -59,11 +64,13 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
         messages: [...v.messages, { role: "user" as const, text: text.slice(0, 2000) }].slice(-40),
       }));
     if (s.source === "example") {
-      setOfflineNote(
-        action === "feedback"
-          ? "Your answer is recorded, but has not been evaluated by AI. Compare it with the reflection questions below."
-          : "Example reflection · not AI: Which constraint matters most to your choice, and what evidence would change your mind?",
-      );
+      const reflection = intent === 'simpler'
+        ? 'Example reflection · not AI: Say what the team needs, what you must protect, and how you would check that your choice helps.'
+        : intent === 'example'
+          ? 'Example reflection · not AI: Imagine the deadline changes to tomorrow. Which assumption would you check first, and which boundary would stay the same?'
+          : 'Example reflection · not AI: Which constraint matters most to your choice, and what evidence would change your mind?';
+      if (action === 'tutor') update(v => ({ ...v, messages: [...v.messages, { role: 'coach' as const, text: reflection }].slice(-40) }));
+      setOfflineNote(action === 'feedback' ? 'Your answer is recorded, but has not been evaluated by AI. Compare it with the reflection questions below.' : reflection);
       return;
     }
     setBusy(true);

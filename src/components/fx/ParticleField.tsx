@@ -119,11 +119,13 @@ export function ParticleField({
           p.x += p.vx;
           p.y += p.vy;
         }
-        ctx.globalAlpha = 0.18 + p.z * 0.45;
+        const centerDistance = Math.hypot((p.x-W/2)/(W*0.36), (p.y-H/2)/(H*0.35));
+        const legibility = density >= 1 && centerDistance < 1 ? 0.12 + centerDistance * 0.65 : 1;
+        ctx.globalAlpha = (0.18 + p.z * 0.45) * legibility;
         const size = p.size * (1 + p.z * 0.25);
         const sprite = sprites[p.color];
         if (sprite) ctx.drawImage(sprite, p.x - size * 2, p.y - size * 2, size * 4, size * 4);
-        ctx.globalAlpha = 0.45 + p.z * 0.4;
+        ctx.globalAlpha = (0.45 + p.z * 0.4) * legibility;
         ctx.fillStyle = colors[p.color] ?? colors[0] ?? css.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2);
