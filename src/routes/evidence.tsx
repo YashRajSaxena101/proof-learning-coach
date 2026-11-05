@@ -11,7 +11,7 @@ import { useMotionPref } from "@/lib/motion-pref";
 export const Route = createFileRoute("/evidence")({
   head: () => ({
     meta: [
-      { title: "Learning evidence — Proof" },
+      { title: "Original sample-case evidence — Proof" },
       { name: "description", content: "A timeline of predictions, hints, repairs, and transfer results from your simulation." },
       { property: "og:title", content: "Learning evidence — Proof" },
       { property: "og:description", content: "See what you demonstrated, and how much help you used." },
@@ -62,7 +62,7 @@ function Evidence() {
       <Page>
         <div className="paper glow-line mx-auto max-w-xl rounded-3xl p-10 text-center">
           <svg viewBox="0 0 200 60" className="mx-auto h-14 w-48" aria-hidden>{[20, 60, 100, 140, 180].map((x) => <circle key={x} cx={x} cy={30} r="4" fill="none" stroke="var(--border)" />)}</svg>
-          <p className="kicker mt-4">{source}</p>
+          <p className="kicker mt-4">Original sample data case · {source}</p>
           <h1 className="mt-2 text-4xl">No evidence yet</h1>
           <p className="mt-3 text-muted-foreground">Each prediction, hint, repair and explanation becomes a point here as you work through the case.</p>
           <Button asChild variant="teal" className="mt-6"><Link to="/learn">Start the simulation</Link></Button>
@@ -71,7 +71,7 @@ function Evidence() {
     );
   return (
     <Page>
-      <p className="kicker">{source}</p>
+      <p className="kicker">Original sample data case · {source}</p>
       <h1 className="mt-2 text-5xl font-medium">Learning evidence</h1>
       <div className="paper mt-8 rounded-3xl p-4 md:p-6">
         <Constellation events={p.events} />

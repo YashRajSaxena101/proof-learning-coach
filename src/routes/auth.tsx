@@ -4,12 +4,14 @@ import { ParticleField } from "@/components/fx/ParticleField";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase";
 import { useSession } from "@/services/remote-sync";
+import { WorkScene } from "@/components/career/WorkScene";
+import { exampleScenario } from "@/domain/career/examples";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — Proof" },
-      { name: "description", content: "Create a Proof account to save and resume your simulation progress." },
+      { name: "description", content: "Sign in to Proof, or explore career practice without a password using an example scenario." },
       { property: "og:title", content: "Sign in — Proof" },
       { property: "og:description", content: "Save simulation progress to your account." },
       { property: "og:type", content: "website" },
@@ -47,21 +49,13 @@ function AuthPage() {
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-5 py-8 md:grid-cols-[1.1fr_1fr] md:items-center md:py-14">
-      <figure className="relative overflow-hidden rounded-3xl border border-border">
-        <img src="/images/proof-revenue-mirage.webp" width={1600} height={900} alt="Illustration: a glowing rising chart beside tangled duplicate data streams and an amber warning."
-          className="aspect-[4/3] w-full object-cover object-left md:aspect-[4/5]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-        <figcaption className="absolute bottom-0 p-6">
-          <p className="kicker">Proof</p>
-          <p className="mt-2 max-w-sm font-display text-2xl leading-tight md:text-3xl">Keep your evidence. Resume the case anywhere.</p>
-        </figcaption>
-      </figure>
+      <section className="py-6"><p className="kicker">Proof · your next rehearsal</p><h2 className="mt-4 text-4xl leading-tight">Bring your curiosity.<br/>Build your reasoning.</h2><p className="mt-4 text-muted-foreground">A fictional team request, a decision to explore, and space to explain what you think.</p><WorkScene scene={exampleScenario('AI engineer').scene} /></section>
       <div className="paper glow-line relative isolate overflow-hidden rounded-3xl p-6 md:p-8">
         <ParticleField variant="ring" density={0.25} className="pointer-events-none absolute -right-24 -top-24 -z-10 size-72 opacity-50" />
         {session ? (
           <>
             <h1 className="text-3xl">You're signed in</h1>
-            <p className="mt-2 text-sm text-muted-foreground">{session.user.email} · progress syncs to your account.</p>
+            <p className="mt-2 text-sm text-muted-foreground">{session.user.email} · original sample-case progress uses your account. Career practice currently stays in this browser.</p>
             <Button asChild variant="teal" className="mt-6"><Link to="/dashboard">Open your dashboard</Link></Button>
           </>
         ) : sent ? (
@@ -73,7 +67,7 @@ function AuthPage() {
         ) : (
           <form onSubmit={submit} className="space-y-4">
             <h1 className="text-3xl">{mode === "in" ? "Sign in" : "Create account"}</h1>
-            <p className="text-sm text-muted-foreground">Optional — the demo runs instantly without an account. Signing in saves and resumes progress.</p>
+            <p className="text-sm text-muted-foreground">An account is optional. Examples work instantly; career practice currently stays in this browser.</p>
             <label className="block text-sm">Email<input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 block w-full rounded-xl border border-input bg-background/60 px-3.5 py-2.5 outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/30" /></label>
             <label className="block text-sm">Password<input type="password" required minLength={6} autoComplete={mode === "in" ? "current-password" : "new-password"} value={pw} onChange={(e) => setPw(e.target.value)} className="mt-1 block w-full rounded-xl border border-input bg-background/60 px-3.5 py-2.5 outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/30" /></label>
             {err && <p role="alert" className="rounded-md bg-warn-soft px-3 py-2 text-sm text-destructive">{err}</p>}
@@ -82,7 +76,7 @@ function AuthPage() {
               {mode === "in" ? "No account? Create one" : "Have an account? Sign in"}
             </button>
             <div className="border-t border-border pt-4 text-center text-sm text-muted-foreground">
-              Just looking? <Link to="/learn" className="text-teal hover:underline">Continue as guest</Link> — browser-only demo, no account.
+              Just looking? <Link to="/practice" search={{example:true}} className="text-teal hover:underline">Try an example as a guest</Link> — no password needed.
             </div>
           </form>
         )}

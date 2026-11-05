@@ -1,0 +1,186 @@
+import { scenarioSchema, type Scenario } from "./contracts";
+const configs: Record<
+  string,
+  {
+    domain: Scenario["scene"]["domain"];
+    title: string;
+    request: string;
+    nodes: string[];
+    options: string[];
+    risk: string;
+  }
+> = {
+  "AI engineer": {
+    domain: "ai",
+    title: "The private-docs support assistant",
+    request:
+      "Design a support assistant that answers from private team documents. Explain how you will support reliable answers without exposing restricted information.",
+    nodes: ["Private documents", "Access check", "Retrieve evidence", "Draft answer"],
+    options: [
+      "Retrieve permitted documents",
+      "Fine-tune on all documents",
+      "Use a prompt without documents",
+    ],
+    risk: "Permission checks must happen before retrieval; a fluent answer is not evidence.",
+  },
+  "Data analyst": {
+    domain: "data",
+    title: "The campaign report that changed",
+    request:
+      "Investigate a campaign report that changes when order records meet item records. Recommend a trustworthy reporting approach.",
+    nodes: ["Orders", "Line items", "Join and group", "Revenue report"],
+    options: [
+      "Check what one row represents",
+      "Remove repeated numeric values",
+      "Trust the joined row count",
+    ],
+    risk: "Repeated values can belong to different records. Establish what each row represents before aggregating.",
+  },
+  "Software engineer": {
+    domain: "software",
+    title: "A checkout request worth tracing",
+    request:
+      "Customers occasionally see checkout failures. Propose a safe debugging approach before the next release.",
+    nodes: ["Checkout request", "API handler", "Payment service", "Response"],
+    options: [
+      "Trace a request across services",
+      "Retry every payment automatically",
+      "Increase the timeout only",
+    ],
+    risk: "A retry could charge twice. Correlate requests and ensure repeated operations are safe.",
+  },
+  "Cloud/DevOps": {
+    domain: "cloud",
+    title: "The traffic-spike rehearsal",
+    request: "Prepare a service for a predictable traffic spike without exceeding the team budget.",
+    nodes: ["Incoming traffic", "Load balancer", "App instances", "Database"],
+    options: ["Measure the bottleneck first", "Double every resource", "Scale only the front end"],
+    risk: "More app instances cannot resolve every database bottleneck. Measure saturation and test a bounded change.",
+  },
+  Cybersecurity: {
+    domain: "security",
+    title: "Access without the overshare",
+    request:
+      "Give a contractor enough access to help with support while protecting customer records.",
+    nodes: ["Contractor", "Identity check", "Permission boundary", "Customer records"],
+    options: [
+      "Grant scoped time-limited access",
+      "Share a full administrator account",
+      "Export all records to email",
+    ],
+    risk: "Use the minimum necessary permissions, an expiry, and an audit trail.",
+  },
+  "Product/Business": {
+    domain: "product",
+    title: "Is the new sign-up flow helping?",
+    request:
+      "Recommend whether to expand a redesigned sign-up flow after an early increase in conversions.",
+    nodes: ["Visitors", "Experiment split", "Sign-up flow", "Outcome evidence"],
+    options: [
+      "Compare a controlled experiment",
+      "Roll out based on one day",
+      "Measure clicks alone",
+    ],
+    risk: "Changes in traffic mix can mimic improvement. Compare comparable groups and guardrail outcomes.",
+  },
+};
+export function exampleScenario(topic: string): Scenario {
+  const c = configs[topic] ?? {
+    domain: "product" as const,
+    title: `A first workplace rehearsal: ${topic}`,
+    request: `A fictional team needs a practical recommendation about ${topic}. Clarify its goal, gather evidence and propose a small reversible next step.`,
+    nodes: ["Team request", "Evidence", "Small trial", "Recommendation"],
+    options: [
+      "Clarify and test assumptions",
+      "Commit before gathering evidence",
+      "Copy an unrelated solution",
+    ],
+    risk: "State what you know, what is uncertain, and how a small test can reduce uncertainty.",
+  };
+  return scenarioSchema.parse({
+    title: c.title,
+    manager: "Sam · fictional team lead",
+    request: c.request,
+    context:
+      "A small team needs a recommendation by Friday. These are illustrative tradeoffs, not measured performance or industry benchmarks.",
+    constraints: [
+      "Use only information you are permitted to access.",
+      "Propose a reversible change within a small team budget.",
+      "Explain what evidence would change your recommendation.",
+    ],
+    objective: "Connect a technical choice to the team goal, constraints and evidence.",
+    artifacts: [
+      {
+        label: "Team note",
+        detail: "The team values reliable results more than a polished demonstration.",
+      },
+      {
+        label: "Review note",
+        detail:
+          "There is time for one small trial before Friday. Document assumptions and a way to check the result.",
+      },
+    ],
+    decisions: [
+      {
+        id: "approach",
+        question: "What is your first approach?",
+        choices: c.options.map((label, i) => ({
+          id: `choice-${i}`,
+          label,
+          consequence:
+            i === 0
+              ? c.risk
+              : "This may miss an important constraint. Revisit the evidence and describe how you would test your assumption.",
+          metrics: {
+            quality: i === 0 ? 80 : 45,
+            speed: i === 0 ? 60 : 85,
+            cost: i === 0 ? 55 : 35,
+          },
+        })),
+      },
+      {
+        id: "evidence",
+        question: "How will you make the recommendation defensible?",
+        choices: [
+          {
+            id: "trial",
+            label: "Run a small trial with explicit success checks",
+            consequence:
+              "A bounded trial gives the team evidence and a way to change course. State the checks before the trial.",
+            metrics: { quality: 85, speed: 55, cost: 60 },
+          },
+          {
+            id: "demo",
+            label: "Show a polished demo and decide immediately",
+            consequence:
+              "A demonstration can start a discussion, but does not establish reliability under the constraints.",
+            metrics: { quality: 40, speed: 90, cost: 30 },
+          },
+        ],
+      },
+    ],
+    interview:
+      "Explain your recommendation to an interviewer. Name one tradeoff, one constraint, and the evidence you would collect.",
+    transfer:
+      "The deadline is moved to tomorrow and access to some evidence is unavailable. How would you adjust your recommendation without ignoring the boundaries?",
+    rubric: [
+      "Connect the recommendation to the stated goal.",
+      "Respect the data and access boundaries.",
+      "Explain a tradeoff and a concrete evidence check.",
+    ],
+    scene: {
+      domain: c.domain,
+      seed: 42,
+      nodes: c.nodes.map((label, i) => ({
+        id: `node-${i}`,
+        label,
+        kind: i === 0 ? "input" : i === 3 ? "output" : i === 1 ? "boundary" : "process",
+      })),
+      edges: [
+        { from: "node-0", to: "node-1" },
+        { from: "node-1", to: "node-2" },
+        { from: "node-2", to: "node-3" },
+      ],
+    },
+  });
+}

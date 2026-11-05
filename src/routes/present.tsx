@@ -72,7 +72,7 @@ function Present() {
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Button variant="teal" size="lg" onClick={startTimer}><Timer /> {secs === null ? "Start 90s demo cue (T)" : "Restart cue"}</Button>
             {secs !== null && <span className={`font-mono text-4xl ${secs <= 15 ? "text-warn" : "text-teal"}`} aria-live="polite">{Math.floor(secs / 60)}:{String(secs % 60).padStart(2, "0")}</span>}
-            <Button variant="outline" size="lg" asChild><Link to="/learn">Open simulation</Link></Button>
+            <Button variant="outline" size="lg" asChild><Link to="/practice" search={{example:true}}>Open example practice</Link></Button>
           </div>
         )}
         </div>

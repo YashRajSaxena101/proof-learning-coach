@@ -1,126 +1,216 @@
 import { useEffect, useRef } from "react";
-import { motionAllowedNow, useMotionPref } from "@/lib/motion-pref";
+import { useMotionPref, motionAllowedNow } from "@/lib/motion-pref";
 import { cn } from "@/lib/utils";
-
-/**
- * Batched canvas particle sculpture: points orbit a 3D spiral "home", attached by springs,
- * repelled by the pointer. All per-frame work stays in refs + rAF (no React renders).
- * Paused offscreen / in background tabs / when motion is off; DPR and count are capped.
- */
-export function ParticleField({ className, density = 1, variant = "spiral" }: { className?: string; density?: number; variant?: "spiral" | "ring" }) {
+/** Cached glow sprites, batched spring dynamics and no frame-driven React state. */
+export function ParticleField({
+  className,
+  density = 1,
+  variant = "spiral",
+}: {
+  className?: string;
+  density?: number;
+  variant?: "spiral" | "ring";
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const fallback = useRef<HTMLDivElement>(null);
   const { allowed } = useMotionPref();
-  const allowedRef = useRef(allowed);
-  allowedRef.current = allowed;
+  const enabled = useRef(allowed);
+  enabled.current = allowed;
   const kick = useRef<() => void>(() => {});
-
-  useEffect(() => { kick.current(); }, [allowed]);
-
+  useEffect(() => kick.current(), [allowed]);
   useEffect(() => {
     const cv = ref.current;
     if (!cv) return;
     const ctx = cv.getContext("2d");
-    if (!ctx) { if (fallback.current) fallback.current.hidden = false; cv.hidden = true; return; }
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
-    let W = 0, H = 0;
+    if (!ctx) return;
     const small = window.innerWidth < 640;
-    const N = Math.round((small ? 650 : 1500) * density);
-    // home params
-    const r0 = new Float32Array(N), a0 = new Float32Array(N), z0 = new Float32Array(N), hue = new Uint8Array(N), size = new Float32Array(N);
-    const x = new Float32Array(N), y = new Float32Array(N), vx = new Float32Array(N), vy = new Float32Array(N);
-    for (let i = 0; i < N; i++) {
-      const t = i / N;
-      if (variant === "ring") { r0[i] = 0.55 + (Math.random() - 0.5) * 0.25; a0[i] = Math.random() * Math.PI * 2; }
-      else { r0[i] = Math.pow(t, 0.6) * 0.95 + Math.random() * 0.05; a0[i] = t * Math.PI * 2 * 4.2 + (i % 3) * 2.094; }
-      z0[i] = (Math.random() - 0.5) * 0.5;
-      const roll = Math.random();
-      hue[i] = roll < 0.06 ? 2 : roll < 0.45 ? 1 : 0; // 0 mint, 1 ivory, 2 amber (rare anomaly)
-      size[i] = 0.6 + Math.random() * 1.3;
-    }
-    const pointer = { x: -9999, y: -9999, active: false };
-    let tilt = 0;
+    const N = Math.min(
+      small ? 700 : 2400,
+      Math.max(120, Math.round((small ? 500 : 1800) * density)),
+    );
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const css = getComputedStyle(document.documentElement);
+    const colors = ["--particle-mint", "--particle-ivory", "--particle-cyan"].map((v) =>
+      css.getPropertyValue(v).trim(),
+    );
+    const sprites = colors.map((color) => {
+      const c = document.createElement("canvas");
+      c.width = c.height = 48;
+      const g = c.getContext("2d");
+      if (g) {
+        const grad = g.createRadialGradient(24, 24, 0, 24, 24, 24);
+        grad.addColorStop(0, color);
+        grad.addColorStop(0.18, color);
+        grad.addColorStop(1, "transparent");
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 48, 48);
+      }
+      return c;
+    });
+    const points = Array.from({ length: N }, (_, i) => ({
+      r: variant === "ring" ? 0.6 + Math.random() * 0.2 : Math.sqrt(Math.random()),
+      a: (i / N) * Math.PI * 9 + Math.random(),
+      z: Math.random(),
+      size: i % 47 === 0 ? 4 + Math.random() : 1.5 + Math.random() * 2,
+      color: i % 11 === 0 ? 2 : i % 3 === 0 ? 1 : 0,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+    }));
+    let W = 0,
+      H = 0,
+      raf = 0,
+      visible = true,
+      last = 0;
+    const pointer = { x: 0, y: 0, active: false };
+    let ripple: { x: number; y: number; at: number } | undefined;
     const resize = () => {
-      const r = cv.getBoundingClientRect();
-      W = r.width; H = r.height;
-      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      const rect = cv.getBoundingClientRect();
+      W = rect.width;
+      H = rect.height;
+      cv.width = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-    resize();
-    const home = (i: number, time: number) => {
-      const s = Math.min(W, H) * 0.48;
-      const a = a0[i]! + time * 0.00012 * (1 + (1 - r0[i]!) * 0.6);
-      const rx = Math.cos(a) * r0[i]! * s, rz = Math.sin(a) * r0[i]! * s;
-      const tiltA = 1.05 + tilt;
-      return [W / 2 + rx, H / 2 + rz * Math.cos(tiltA) + z0[i]! * s * Math.sin(tiltA) * 0.6, rz] as const;
+    const home = (p: (typeof points)[number], t: number) => {
+      const a = p.a + t * 0.000035;
+      return {
+        x: W / 2 + Math.cos(a) * p.r * W * 0.49,
+        y: H / 2 + Math.sin(a) * p.r * H * 0.44 * (0.55 + p.z * 0.4),
+      };
     };
-    for (let i = 0; i < N; i++) { const [hx, hy] = home(i, 0); x[i] = hx; y[i] = hy; }
-    const COLORS = ["oklch(0.86 0.19 158 / A)", "oklch(0.95 0.02 85 / A)", "oklch(0.76 0.16 55 / A)"];
-    const draw = (time: number) => {
+    resize();
+    points.forEach((p) => {
+      const h = home(p, 0);
+      p.x = h.x;
+      p.y = h.y;
+    });
+    const draw = (t: number, moving: boolean) => {
       ctx.clearRect(0, 0, W, H);
       ctx.globalCompositeOperation = "lighter";
-      const R = Math.min(W, H) * 0.16, R2 = R * R;
-      for (let i = 0; i < N; i++) {
-        const [hx, hy, hz] = home(i, time);
-        // spring to home
-        let ax = (hx - x[i]!) * 0.035, ay = (hy - y[i]!) * 0.035;
-        if (pointer.active) {
-          const dx = x[i]! - pointer.x, dy = y[i]! - pointer.y, d2 = dx * dx + dy * dy;
-          if (d2 < R2 && d2 > 0.01) { const f = (1 - d2 / R2) * 2.4 / Math.sqrt(d2); ax += dx * f; ay += dy * f; }
+      for (const p of points) {
+        const h = home(p, t);
+        if (moving) {
+          let ax = (h.x - p.x) * 0.025,
+            ay = (h.y - p.y) * 0.025;
+          if (pointer.active) {
+            const dx = p.x - pointer.x,
+              dy = p.y - pointer.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 1 && dist < 105) {
+              const f = (1 - dist / 105) * 1.7;
+              ax += (dx / dist) * f;
+              ay += (dy / dist) * f;
+            }
+          }
+          if (ripple) {
+            const dx = p.x - ripple.x,
+              dy = p.y - ripple.y,
+              dist = Math.hypot(dx, dy);
+            const age = t - ripple.at;
+            const radius = age * 0.25;
+            if (age < 1000 && dist > 1 && Math.abs(dist - radius) < 35) {
+              ax += (dx / dist) * 1.3 * (1 - age / 1000);
+              ay += (dy / dist) * 1.3 * (1 - age / 1000);
+            }
+          }
+          p.vx = (p.vx + ax) * 0.88;
+          p.vy = (p.vy + ay) * 0.88;
+          p.x += p.vx;
+          p.y += p.vy;
         }
-        vx[i] = (vx[i]! + ax) * 0.86; vy[i] = (vy[i]! + ay) * 0.86;
-        x[i]! += vx[i]!; y[i]! += vy[i]!;
-        const depth = 0.45 + 0.55 * ((hz / (Math.min(W, H) * 0.48)) * 0.5 + 0.5);
-        const sp = Math.min(1, Math.hypot(vx[i]!, vy[i]!) * 0.15);
-        ctx.fillStyle = COLORS[hue[i]!]!.replace("A", String((0.25 + 0.6 * depth + sp * 0.3).toFixed(2)));
-        const sz = size[i]! * (0.6 + depth * 0.9);
-        ctx.fillRect(x[i]!, y[i]!, sz, sz);
+        const centerDistance = Math.hypot((p.x-W/2)/(W*0.36), (p.y-H/2)/(H*0.35));
+        const legibility = density >= 1 && centerDistance < 1 ? 0.12 + centerDistance * 0.65 : 1;
+        ctx.globalAlpha = (0.18 + p.z * 0.45) * legibility;
+        const size = p.size * (1 + p.z * 0.25);
+        const sprite = sprites[p.color];
+        if (sprite) ctx.drawImage(sprite, p.x - size * 2, p.y - size * 2, size * 4, size * 4);
+        ctx.globalAlpha = (0.45 + p.z * 0.4) * legibility;
+        ctx.fillStyle = colors[p.color] ?? colors[0] ?? css.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2);
+        ctx.fill();
       }
+      ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = "source-over";
     };
-    let raf = 0, visible = true, last = 0;
     const loop = (t: number) => {
       raf = 0;
-      if (!visible || document.hidden || !allowedRef.current) return;
-      last = t; draw(t);
+      if (!visible || document.hidden || !enabled.current) return;
+      last = t;
+      draw(t, true);
       raf = requestAnimationFrame(loop);
     };
     const start = () => {
-      if (raf) return;
-      if (!motionAllowedNow() || !allowedRef.current) { draw(last); return; } // static frame
-      raf = requestAnimationFrame(loop);
+      if (raf) {
+        if (!enabled.current) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        } else return;
+      }
+      if (!enabled.current || !motionAllowedNow()) {
+        draw(last, false);
+        return;
+      }
+      if (visible && !document.hidden) raf = requestAnimationFrame(loop);
     };
     kick.current = start;
-    const io = new IntersectionObserver(([e]) => { visible = !!e?.isIntersecting; if (visible) start(); }, { threshold: 0 });
+    const io = new IntersectionObserver(([e]) => {
+      visible = !!e?.isIntersecting;
+      if (visible) start();
+      else {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    });
     io.observe(cv);
-    const ro = new ResizeObserver(() => { resize(); if (!raf) draw(last); });
+    const ro = new ResizeObserver(() => {
+      resize();
+      if (!raf) draw(last, false);
+    });
     ro.observe(cv);
     const onMove = (e: PointerEvent) => {
+      if (!enabled.current || e.pointerType === "touch") return;
       const r = cv.getBoundingClientRect();
-      pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top; pointer.active = true;
-      tilt = ((e.clientY - r.top) / r.height - 0.5) * 0.25;
+      pointer.x = e.clientX - r.left;
+      pointer.y = e.clientY - r.top;
+      pointer.active = pointer.x >= 0 && pointer.y >= 0 && pointer.x <= W && pointer.y <= H;
     };
-    const onLeave = () => { pointer.active = false; };
-    const onVis = () => { if (!document.hidden) start(); };
+    const onTap = (e: PointerEvent) => {
+      if (!enabled.current) return;
+      const r = cv.getBoundingClientRect();
+      const x = e.clientX - r.left,
+        y = e.clientY - r.top;
+      if (x >= 0 && x <= W && y >= 0 && y <= H) ripple = { x, y, at: performance.now() };
+    };
+    const leave = () => {
+      pointer.active = false;
+    };
+    const vis = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else start();
+    };
     window.addEventListener("pointermove", onMove, { passive: true });
-    document.addEventListener("pointerleave", onLeave);
-    window.addEventListener("blur", onLeave);
-    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pointerdown", onTap, { passive: true });
+    window.addEventListener("blur", leave);
+    document.addEventListener("visibilitychange", vis);
     start();
     return () => {
-      cancelAnimationFrame(raf); io.disconnect(); ro.disconnect();
+      cancelAnimationFrame(raf);
+      io.disconnect();
+      ro.disconnect();
       window.removeEventListener("pointermove", onMove);
-      document.removeEventListener("pointerleave", onLeave);
-      window.removeEventListener("blur", onLeave);
-      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pointerdown", onTap);
+      window.removeEventListener("blur", leave);
+      document.removeEventListener("visibilitychange", vis);
       kick.current = () => {};
     };
   }, [density, variant]);
-
   return (
     <div className={cn("relative", className)} aria-hidden>
       <canvas ref={ref} className="absolute inset-0 size-full" />
-      <div ref={fallback} hidden className="absolute inset-0 rounded-full bg-[radial-gradient(circle,var(--glow),transparent_65%)]" />
     </div>
   );
 }
