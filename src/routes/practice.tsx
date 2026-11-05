@@ -11,8 +11,8 @@ import { ParticleField } from "@/components/fx/ParticleField";
 import { SaveNotice } from "@/components/career/SaveNotice";
 export const Route = createFileRoute("/practice")({
   validateSearch: (s: Record<string, unknown>): { new?: boolean; example?: boolean } => ({
-    new: s.new === true || s.new === "true",
-    example: s.example === true || s.example === "true",
+    new: s['new'] === true || s['new'] === "true",
+    example: s['example'] === true || s['example'] === "true",
   }),
   head: () => ({
     meta: [
