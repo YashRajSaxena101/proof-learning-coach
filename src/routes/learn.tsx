@@ -41,7 +41,7 @@ function Learn() {
     <Page>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[220px_1fr] lg:gap-10">
         <aside className="paper min-w-0 rounded-2xl p-4 lg:sticky lg:top-20 lg:self-start">
-          <p className="kicker">Investigation · progress</p>
+          <p className="kicker">Original sample data case · progress</p>
           <ol className="mt-3 flex gap-1 overflow-x-auto lg:flex-col">
             {STEPS.map((s, i) => {
               const done = p.completed.includes(s.id) || (s.id === "transfer" && p.transfer.solved);
