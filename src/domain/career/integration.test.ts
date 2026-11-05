@@ -21,8 +21,9 @@ describe("Career integration regressions", () => {
     const s = session("a", "2026-11-05T00:00:00Z"); s.source = "live-ai";
     s.answers.push({ id: "attempt-1", createdAt: s.createdAt, stage: "decisions", text: "my answer", helpUsed: 0, status: "pending" });
     expect(canAdvance(s, true)).toBe(false); expect(canAdvance(s, false)).toBe(false);
-    s.answers[0].status = "failed"; expect(canAdvance(s, false)).toBe(false);
-    s.answers[0].feedback = feedback; s.answers[0].status = "complete"; expect(canAdvance(s, false)).toBe(true);
+    const attempt = s.answers[0]; if (!attempt) throw Error("fixture");
+    attempt.status = "failed"; expect(canAdvance(s, false)).toBe(false);
+    attempt.feedback = feedback; attempt.status = "complete"; expect(canAdvance(s, false)).toBe(true);
   });
   it("isolates latest attempts and revise text to the current stage", () => {
     const s = session("a", "2026-11-05T00:00:00Z");
@@ -45,7 +46,8 @@ describe("Career integration regressions", () => {
     newer.answers = [{ stage: "decisions", text: "new", helpUsed: 0, createdAt: "2026-11-05T01:05:00Z", feedback: { ...feedback, gaps: ["lineage"] } }];
     older.answers = [{ stage: "transfer", text: "old", helpUsed: 0, feedback: { ...feedback, gaps: ["cost"] } }];
     expect(latestFeedback([newer, older])?.feedback.gaps).toEqual(["lineage"]);
-    older.answers[0].feedbackAt = "2026-11-05T01:06:00Z";
+    const attempt = older.answers[0]; if (!attempt) throw Error("fixture");
+    attempt.feedbackAt = "2026-11-05T01:06:00Z";
     expect(latestFeedback([newer, older])?.feedback.gaps).toEqual(["cost"]);
   });
 });

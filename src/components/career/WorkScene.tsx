@@ -7,7 +7,7 @@ import { useMotionPref } from "@/lib/motion-pref";
 
 /** Text/data only: validated graphs, seeded domain layouts and simulated choice effects. */
 export function WorkScene({ scene, choice, compact = false }: {
-  scene: Scenario["scene"]; choice?: SceneChoice; compact?: boolean;
+  scene: Scenario["scene"]; choice?: SceneChoice | undefined; compact?: boolean;
 }) {
   const { allowed } = useMotionPref();
   const [selected, setSelected] = useState(0);
