@@ -31,6 +31,18 @@ Root has now deployed the external career-coach using Ollama. This integration t
 - **Not verified/not changed:** hosted budget/security/ownership tests remain root-owned; signed-in career endpoint behavior and account career sync are not verified. No backend changes or publication. Platform manages source revisions; no stateful Git command or manual commit.
 
 ## Previous rebuild ledger (historical, superseded availability status)
+## Independent source review — 2026-11-05
+- Decision revisit/compare preserves initial choice history, answer snapshots, attempts and help. Changing a choice requires new feedback for that version; historical feedback remains readable. Stage Back aborts pending work and restores drafts.
+- Dashboard shows latest reflection for decisions/interview/transfer plus expandable complete retained attempt history, tutor transcript and decision history. The private capability is never included in these views.
+- Fixed examples now enter directly after topic selection, without experience/diagnostic calibration. Setup, fallback and workspace copy explain that fixed topic examples are not personalized and custom examples are general reasoning templates. AI setup remains four views.
+- Setup and stage heading focus and `aria-current="step"` verified in browser; `/progress` activates Progress. Coach placeholder is current-topic neutral.
+- Pitch shortcuts ignore controls/editable targets and modifiers. Native Space on Notes toggles Notes without advancing; Space on a dot selects that slide; focused ArrowRight does not advance. All eight dot targets measured 44×44px on 1280 desktop and 390 mobile. Current dot uses aria-current, timer aria-live is off with start/end status only, interval clears at zero; 56px badge area preserved.
+- **74/74 tests pass in ten files** (six added regressions since integration); latest automatic build/typecheck **OK at 01:48:36 UTC**. No manual build/typecheck or backend changes.
+- Browser example flow: initial decision → reflection → interview → Back → changed decision → old Continue disabled → new reflection → interview/transfer → progress; original and revised reflections remained in four-attempt history. Full history and transcript opened. Setup/stage focus inspected. Desktop/mobile pitch screenshots opened and checked; no overflow/page errors.
+- **Live Cybersecurity mobile:** generation, tutor and feedback all succeeded against deployed career-coach; current client contract preserved. Mobile progress transcript and long custom example checked without overflow. Existing integration ledger already records live Data analyst/Software/custom generation and coaching. No service-pending copy remains in home/About/pitch, and feedback.independent is not displayed as mastery or proof of unassisted success.
+- Screenshots: `/tmp/browser/source-review/`. Publication intentionally excluded; account career sync and root-owned backend budget/ownership verification remain outside this task.
+
+## Historical baseline
 
 - Baseline: original case services, calculations, accounts and backend records unchanged. Old routes load; original 32 tests pass.
 - Tests: 19 new contract/storage/coach-client tests; 51/51 total across five files.
