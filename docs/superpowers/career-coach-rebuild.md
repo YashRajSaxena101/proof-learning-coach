@@ -10,9 +10,28 @@ Implementation is autonomously approved. Do not publish in this turn. Preserve t
 5. Test domain/storage/security boundaries and browser flows on desktop/mobile, reduced motion, failure and reload paths. Record live versus simulated verification honestly.
 
 ## Secure deployment constraint
-External management access and provider configuration must be verified before claiming deployment or live AI. Never provision Cloud or expose an inference endpoint without enforced limits. This environment refused new Edge Function creation. Client contracts and setup instructions are available, but external function and migration source were not created or deployed. Examples are explicitly non-AI.
+Root has now deployed the external career-coach using Ollama. This integration turn modifies only frontend/domain contracts; no backend, Auth configuration, secrets, tables or policies were changed. Guest sessions use private scoped capabilities, not anonymous Auth. Backend security and durable limits remain root-owned. Examples stay explicitly non-AI; career history stays device-only.
 
-## Verification ledger
+## Integration steps — implemented
+1. Add required generation capability, optional backward-compatible session capability and bounded learner strings. Preserve strict scenario shape and inert text rendering.
+2. Regression tests before fixes: custom topic lengths 73/85/100, stage/attempt/request isolation, failed feedback retry, latest timestamped feedback and capability reload.
+3. Persist stage drafts and timestamped attempts. Abort/invalidate on edits, exit, session/stage change; block pending advancement and expose explicitly unevaluated failure skip.
+4. Render six seeded workplace compositions, actual committed consequences, simulated tradeoff interpretation and accessible node controls. Pause removes autonomous packet loops.
+5. Verify real external calls and screenshots; update truthful availability/presentation copy. Preserve badge safe area, accounts and old sample case. Do not publish.
+
+## Integration verification ledger — 2026-11-05
+- **68/68 tests pass across eight files**, including two rendered-workspace regressions. All original domain/store tests remain passing. Latest automatic harness: **build OK at 01:43:02 UTC**, includes typecheck. No manual build/typecheck was run per platform rules.
+- **Live provider:** responses identify Ollama, model `gemma4:31b`. No secret values inspected or emitted. Root's deployment was used, not changed.
+- **Live desktop 1280×1800:** Data analyst generation → meaningful decisions → contextual tutor → decisions feedback → interview feedback → transfer feedback → completion/dashboard. Continue disabled while each response pending, enabled only after validated feedback. Software engineer and custom Marine robotics/underwater autonomy generated different titles, constraints and software scenes. Multiple unique Data analyst generations succeeded.
+- **Live mobile 390×844:** Data analyst generation, feedback, revision/retry feedback succeeded. Interview draft with C++ and `<` preserved on reload; previous-stage draft restored. Scoped capability persisted without appearing in page text. A separate fresh desktop generation/reload/tutor succeeded, confirming continued guest access after reload.
+- **Live failures observed:** some AI-engineer generation calls returned service unavailable; one initial Data analyst feedback was schema-invalid; a mobile post-reload tutor failed. Errors were visible and work retained. Later desktop Data analyst feedback and reload tutor succeeded. Software artifacts initially failed an overstrict SQL/text filter; inert technical artifact validation correction allowed subsequent real Software generation. No mocked result labeled live.
+- **Mocked checks:** delayed response/edit/cancel/retry and stage isolation (rendered tests); malformed response, missing capability, 404, 429, offline (unit tests). Browser 503 feedback showed disabled Continue plus explicit unevaluated skip, retained answer after reload. Browser accelerated timeout produced timeout message and kept diagnostic. Browser offline error kept inputs. These do not verify a real provider deadline or hosted budgets.
+- **Visual checks:** all six topic scenes on mobile, final five updated scene compositions on desktop/mobile; no horizontal overflow. Seven-node spacing and seed differences covered by domain tests. OS reduce and pause yielded zero SVG packet loops; resume restored three loops. Hero reading island, auth/sample pages and routes inspected. Pitch reduced-motion blank state was found and corrected; Next/Prev then clicked correctly on desktop/mobile, with 56px badge area preserved.
+- **Screenshots:** `/tmp/browser/career-integration/` contains generation, stage-feedback, progress, reload tutor, mobile route, hero, pitch and scene captures. Selected final screenshots were opened and inspected.
+- **Not verified/not changed:** hosted budget/security/ownership tests remain root-owned; signed-in career endpoint behavior and account career sync are not verified. No backend changes or publication. Platform manages source revisions; no stateful Git command or manual commit.
+
+## Previous rebuild ledger (historical, superseded availability status)
+
 - Baseline: original case services, calculations, accounts and backend records unchanged. Old routes load; original 32 tests pass.
 - Tests: 19 new contract/storage/coach-client tests; 51/51 total across five files.
 - External: career-coach returns 404; CLI has no access token; hosted anonymous auth is disabled. Ollama secrets/configuration cannot be inspected. No provider inference, deployment or migration performed.

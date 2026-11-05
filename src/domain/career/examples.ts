@@ -87,7 +87,7 @@ const configs: Record<
 export function exampleScenario(topic: string): Scenario {
   const c = configs[topic] ?? {
     domain: "product" as const,
-    title: `A first workplace rehearsal: ${topic}`,
+    title: `A first workplace rehearsal: ${topic.replace(/[<>]/g, "").replace(/https?:\/\/|javascript:|\b(?:SELECT|INSERT|DROP)\s/gi, "").slice(0, 69)}${topic.length > 69 ? "…" : ""}`,
     request: `A fictional team needs a practical recommendation about ${topic}. Clarify its goal, gather evidence and propose a small reversible next step.`,
     nodes: ["Team request", "Evidence", "Small trial", "Recommendation"],
     options: [

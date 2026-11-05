@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase";
-import { requestSchema, scenarioSchema, feedbackSchema } from "@/domain/career/contracts";
+import { requestSchema, scenarioSchema, feedbackSchema, capabilitySchema } from "@/domain/career/contracts";
 
 const generatedSchema = z
   .object({
@@ -9,21 +9,15 @@ const generatedSchema = z
     mode: z.literal("live-ai"),
     provider: z.literal("Ollama"),
     model: z.string().min(1).max(100),
+    capability: capabilitySchema,
   })
   .strict();
 export class CareerCoachError extends Error {}
 /** External career-coach owns inference and authoritative feedback; no browser credential or evaluation write. */
 export async function requestCareerCoach(input: unknown, signal: AbortSignal) {
   const request = requestSchema.parse(input);
-  const { data: auth } = await supabase.auth.getSession();
-  if (!auth.session) {
-    // Anonymous auth is server-configured. No password is required when enabled.
-    const { error } = await supabase.auth.signInAnonymously();
-    if (error)
-      throw new CareerCoachError(
-        "Guest AI access is not enabled yet. Your inputs are kept. Try an example scenario, or sign in and retry.",
-      );
-  }
+  // functions.invoke preserves legitimate account JWTs; guests use the public
+  // client bearer plus scoped capability. Do not create anonymous Auth users.
   const timeout = AbortSignal.timeout(45000);
   const combined = AbortSignal.any([signal, timeout]);
   try {
@@ -31,6 +25,8 @@ export async function requestCareerCoach(input: unknown, signal: AbortSignal) {
       body: request,
       signal: combined,
     });
+    if (signal.aborted) throw new CareerCoachError("Request stopped. Your inputs and previous work are kept.");
+    if (timeout.aborted) throw new CareerCoachError("The coach took too long. Your inputs are kept. Please retry.");
     if (error) {
       const response =
         "context" in error && error.context instanceof Response ? error.context : undefined;
@@ -41,7 +37,7 @@ export async function requestCareerCoach(input: unknown, signal: AbortSignal) {
           : status === 404
             ? "The career coach is not deployed yet. Your inputs are kept; an example scenario is available."
             : status === 401 || status === 403
-              ? "The coach could not confirm access. Sign in again, then retry."
+              ? "The coach could not confirm access to this practice. Your work is kept. Retry, or start a new practice if access has expired."
               : "The coach could not respond. Your work is kept. Please retry when the service is available.",
       );
     }

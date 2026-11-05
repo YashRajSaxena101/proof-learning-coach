@@ -63,6 +63,9 @@ function Practice() {
     }
   }, []);
   useEffect(() => {
+    gate.current.cancel();
+    abort.current?.abort();
+    setBusy(false);
     setWorkspace(!search.new && !search.example);
   }, [search.new, search.example]);
   useEffect(
@@ -73,6 +76,9 @@ function Practice() {
     [],
   );
   const change = (next: Partial<Profile>) => {
+    gate.current.cancel();
+    abort.current?.abort();
+    setBusy(false);
     const value = { ...p, ...next };
     setP(value);
     const parsed = profileSchema.safeParse(value);
@@ -84,6 +90,7 @@ function Practice() {
       setError(parsed.error.issues[0]?.message ?? "Please check your inputs.");
       return;
     }
+    try {
     careerStore.add({
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
@@ -99,6 +106,9 @@ function Practice() {
     setWorkspace(true);
     void navigate({ to: '/practice', search: {}, replace: true });
     setError("");
+    } catch {
+      setError("The example could not be opened. Your inputs are kept. Try again or choose another topic.");
+    }
   }
   async function generate() {
     const parsed = profileSchema.safeParse(p);
@@ -124,6 +134,9 @@ function Practice() {
           profile: parsed.data,
           scenario: result.scenario,
           source: "live-ai",
+          capability: result.capability,
+          provider: result.provider,
+          model: result.model,
           stage: "decisions",
           choices: {},
           answers: [],

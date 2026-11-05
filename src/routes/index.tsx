@@ -47,11 +47,11 @@ function Home() {
             <br />
             behind the <em className="font-normal text-teal">interview.</em>
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
+          <p className="hero-reading mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
             Turn “I’ve learned about it” into “Here’s how I’d approach it.” Rehearse a workplace
             decision, talk it through, and try a new constraint.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <div className="hero-reading mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" variant="teal">
               <Link to="/practice" search={{ new: true }}>
                 Build my practice <ArrowRight />
@@ -123,7 +123,7 @@ function Home() {
           </Link>
         </Button>
         <p className="mt-4 text-sm text-muted-foreground">
-          Examples work without an account. Live career AI is pending secure service setup.
+          Start without an account. AI practice uses Ollama. Your career progress stays on this device.
         </p>
       </section>
     </>
@@ -160,7 +160,7 @@ function PreviewContent({ topic }: { topic: string }) {
             A fictional team. A concrete constraint. A decision to explain.
           </p>
         </div>
-        <WorkScene key={topic} scene={scenario.scene} metrics={selected?.metrics} />
+        <WorkScene key={topic} scene={scenario.scene} choice={selected ?? undefined} />
       </div>
       <div className="mt-5 flex flex-wrap gap-3">
         {scenario.decisions[0]?.choices.map((c, i) => (

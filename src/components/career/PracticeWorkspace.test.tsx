@@ -1,0 +1,53 @@
+import { beforeEach, expect, it, vi } from "vitest";
+import { render, screen, fireEvent, waitFor, act, cleanup } from "@testing-library/react";
+import { careerStore, useCareer } from "@/services/career/store";
+import { exampleScenario } from "@/domain/career/examples";
+import type { Feedback } from "@/domain/career/contracts";
+const mocks = vi.hoisted(() => ({ call: vi.fn() }));
+vi.mock("@/services/career/coach", () => ({ requestCareerCoach: mocks.call }));
+vi.mock("@tanstack/react-router", () => ({ Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a> }));
+vi.mock("./WorkScene", () => ({ WorkScene: () => null }));
+vi.mock("./SaveNotice", () => ({ SaveNotice: () => null }));
+import { PracticeWorkspace } from "./PracticeWorkspace";
+const result: Feedback = { mode: "live-ai", provider: "Ollama", model: "test", message: "Feedback for this attempt", strengths: ["Clear constraint"], gaps: ["Evidence"], nextQuestion: "What would you measure?", retrySuggestions: ["State a check"], independent: false };
+function Wrapper() { const s = useCareer().sessions[0]; return s ? <PracticeWorkspace key={s.id} session={s} /> : null; }
+beforeEach(() => {
+  cleanup(); vi.resetAllMocks();
+  const scenario = exampleScenario("Data analyst");
+  careerStore.set(() => ({ version: 1, sessions: [{ id: "00000000-0000-4000-8000-000000000001", createdAt: "2026-11-05T01:00:00Z", profile: { topic: "Data analyst", experience: "new", interest: "", goal: "interview", minutes: 15, diagnostic: "" }, scenario, source: "live-ai", capability: "test-private-capability", stage: "decisions", choices: { approach: "choice-0", evidence: "trial" }, answers: [], messages: [], helpUsed: 0 }] }));
+});
+it("blocks advancement during delayed feedback and isolates stage drafts and Revise", async () => {
+  let resolve: (f: Feedback) => void = () => {};
+  mocks.call.mockImplementation(() => new Promise<Feedback>(r => { resolve = r; }));
+  render(<Wrapper />);
+  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "SELECT SUM(amount) FROM orders" } });
+  fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
+  expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
+  await act(async () => resolve(result));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled());
+  fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+  expect(screen.getByLabelText("Your answer")).toHaveValue("");
+  expect(screen.queryByRole("button", { name: "Revise my answer" })).toBeNull();
+  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "Interview draft" } });
+  fireEvent.click(screen.getByRole("button", { name: "Back to previous stage" }));
+  expect(screen.getByLabelText("Your answer")).toHaveValue("SELECT SUM(amount) FROM orders");
+  expect(screen.getByRole("button", { name: "Revise my answer" })).toBeEnabled();
+});
+it("ignores an old response after editing then retrying, and keeps failed attempts explicit", async () => {
+  let oldResolve: (f: Feedback) => void = () => {};
+  mocks.call.mockImplementationOnce(() => new Promise<Feedback>(r => { oldResolve = r; })).mockRejectedValueOnce(new Error("Provider unavailable")).mockResolvedValueOnce(result);
+  render(<Wrapper />);
+  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "First draft" } });
+  fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
+  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "Revised draft latency < 100 ms" } });
+  await act(async () => oldResolve({ ...result, message: "STALE RESPONSE" }));
+  expect(screen.queryByText("STALE RESPONSE")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
+  await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Provider unavailable"));
+  expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Skip feedback/ })).toBeEnabled();
+  expect(screen.getByLabelText("Your answer")).toHaveValue("Revised draft latency < 100 ms");
+  fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled());
+  expect(careerStore.get().sessions[0]?.answers.map(a => a.status)).toEqual(["failed", "failed", "complete"]);
+});

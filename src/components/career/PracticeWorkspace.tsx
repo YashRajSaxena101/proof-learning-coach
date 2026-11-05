@@ -8,102 +8,99 @@ import {
   nextSuggestion,
   requestSchema,
 } from "@/domain/career/contracts";
-import { careerStore, latestRequest } from "@/services/career/store";
+import { careerStore } from "@/services/career/store";
 import { requestCareerCoach } from "@/services/career/coach";
 import { WorkScene } from "./WorkScene";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "./SaveNotice";
+import { answerStage, attemptForStage, canAdvance, feedbackRequestGate } from "@/domain/career/attempts";
 
 export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
-  const [answer, setAnswer] = useState("");
+  const stage = answerStage(s);
+  const currentAttempt = attemptForStage(s);
+  const answer = s.drafts?.[stage] ?? currentAttempt?.text ?? "";
   const [chat, setChat] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [offlineNote, setOfflineNote] = useState("");
   const control = useRef<AbortController | undefined>(undefined);
-  const gate = useRef(latestRequest());
-  useEffect(
-    () => () => {
-      gate.current.cancel();
-      control.current?.abort();
-    },
-    [],
-  );
+  const gate = useRef(feedbackRequestGate());
+  const current = useRef(s);
+  current.current = s;
+  const pendingAttempt = useRef<string | undefined>(undefined);
+  const update = (fn: (v: CareerSession) => CareerSession) => careerStore.updateSession(s.id, fn);
+  function cancel() {
+    gate.current.cancel();
+    control.current?.abort();
+    const id = pendingAttempt.current;
+    pendingAttempt.current = undefined;
+    if (id) careerStore.updateSession(s.id, v => ({ ...v, answers: v.answers.map(a => a.id === id && a.status === "pending" ? { ...a, status: "failed" as const } : a) }));
+    setBusy(false);
+  }
+  useEffect(() => {
+    setBusy(false); setError(""); setOfflineNote(""); setChat("");
+    return () => { gate.current.cancel(); control.current?.abort(); };
+  }, [s.id, s.stage]);
+  useEffect(() => {
+    // An interrupted request can never remain a pending success after re-entry.
+    careerStore.updateSession(s.id, v => ({ ...v, answers: v.answers.map(a => a.status === "pending" ? { ...a, status: "failed" as const } : a) }));
+    return () => {
+      const id = pendingAttempt.current;
+      if (id) careerStore.updateSession(s.id, v => ({ ...v, answers: v.answers.map(a => a.id === id && a.status === "pending" ? { ...a, status: "failed" as const } : a) }));
+    };
+  }, [s.id]);
+  const setAnswer = (text: string) => {
+    cancel(); setError(""); setOfflineNote("");
+    update(v => ({ ...v, drafts: { ...v.drafts, [stage]: text } }));
+  };
   const decision = s.scenario.decisions.find((d) => !s.choices[d.id]);
   const committed = s.scenario.decisions.flatMap((d) => {
-    const c = visibleDecision(d, s.choices[d.id]);
-    return c ? [c] : [];
+    const c = visibleDecision(d, s.choices[d.id]); return c ? [c] : [];
   });
-  const lastFeedback = s.answers.at(-1)?.feedback;
+  const lastFeedback = currentAttempt?.text === answer ? currentAttempt.feedback : undefined;
   const reference = REFERENCES[s.profile.topic];
-  const stage = s.stage === "complete" ? "transfer" : s.stage;
-  const update = (fn: (v: CareerSession) => CareerSession) => careerStore.updateSession(s.id, fn);
-  async function call(
-    action: "tutor" | "feedback",
-    text: string,
-    intent: "hint" | "simpler" | "example" | "answer",
-  ) {
+  const advance = () => {
+    cancel(); setError(""); setOfflineNote("");
+    update(v => ({ ...v, stage: v.stage === "decisions" ? "interview" : v.stage === "interview" ? "transfer" : "complete" }));
+  };
+  async function call(action: "tutor" | "feedback", text: string, intent: "hint" | "simpler" | "example" | "answer") {
     if (!text.trim() || busy) return;
-    if (!requestSchema.safeParse({ action, sessionId: s.id, text, intent, stage, choices: s.choices }).success) {
-      setError('Use a plain-text question or answer, up to 2,000 characters.');
-      return;
-    }
-    setError("");
-    setOfflineNote("");
-    if (action === "feedback")
-      update((v) => ({
-        ...v,
-        answers: [...v.answers, { stage, text: text.slice(0, 2000), helpUsed: v.helpUsed }].slice(
-          -40,
-        ),
-      }));
-    else
-      update((v) => ({
-        ...v,
-        helpUsed: Math.min(100, v.helpUsed + 1),
-        messages: [...v.messages, { role: "user" as const, text: text.slice(0, 2000) }].slice(-40),
-      }));
+    const request = { action, sessionId: s.id, ...(s.capability ? { capability: s.capability } : {}), text, intent, stage, choices: s.choices };
+    if (!requestSchema.safeParse(request).success) { setError("Use a question or answer up to 2,000 characters. Technical snippets are welcome."); return; }
+    setError(""); setOfflineNote("");
+    const attemptId = crypto.randomUUID();
+    if (action === "feedback") update(v => ({ ...v, drafts: { ...v.drafts, [stage]: text }, answers: [...v.answers, {
+      id: attemptId, createdAt: new Date().toISOString(), stage, text, helpUsed: v.helpUsed,
+      status: s.source === "example" ? "recorded" as const : "pending" as const,
+    }].slice(-40) }));
+    else update(v => ({ ...v, helpUsed: Math.min(100, v.helpUsed + 1), messages: [...v.messages, { role: "user" as const, text }].slice(-40) }));
     if (s.source === "example") {
-      const reflection = intent === 'simpler'
-        ? 'Example reflection · not AI: Say what the team needs, what you must protect, and how you would check that your choice helps.'
-        : intent === 'example'
-          ? 'Example reflection · not AI: Imagine the deadline changes to tomorrow. Which assumption would you check first, and which boundary would stay the same?'
-          : 'Example reflection · not AI: Which constraint matters most to your choice, and what evidence would change your mind?';
-      if (action === 'tutor') update(v => ({ ...v, messages: [...v.messages, { role: 'coach' as const, text: reflection }].slice(-40) }));
-      setOfflineNote(action === 'feedback' ? 'Your answer is recorded, but has not been evaluated by AI. Compare it with the reflection questions below.' : reflection);
-      return;
+      const reflection = intent === "simpler"
+        ? "Example reflection · not AI: Say what the team needs, what you must protect, and how you would check that your choice helps."
+        : intent === "example"
+          ? "Example reflection · not AI: Imagine the deadline changes to tomorrow. Which assumption would you check first, and which boundary would stay the same?"
+          : "Example reflection · not AI: Which constraint matters most to your choice, and what evidence would change your mind?";
+      if (action === "tutor") update(v => ({ ...v, messages: [...v.messages, { role: "coach" as const, text: reflection }].slice(-40) }));
+      setOfflineNote(action === "feedback" ? "Your answer is recorded, but has not been evaluated by AI. Compare it with the reflection questions below." : reflection); return;
     }
     setBusy(true);
-    const id = gate.current.begin();
+    pendingAttempt.current = action === "feedback" ? attemptId : undefined;
+    const token = gate.current.begin(s.id, stage, attemptId);
     control.current = new AbortController();
+    const valid = () => gate.current.accepts(token, current.current.id, answerStage(current.current), attemptId);
     try {
-      const r = await requestCareerCoach(
-        { action, sessionId: s.id, text, intent, stage, choices: s.choices },
-        control.current.signal,
-      );
-      if (!gate.current.current(id)) return;
+      const r = await requestCareerCoach(request, control.current.signal);
+      if (!valid()) return;
       if ("message" in r) {
-        if (action === "feedback")
-          update((v) => ({
-            ...v,
-            answers: v.answers.map((a, i) =>
-              i === v.answers.length - 1 ? { ...a, feedback: r } : a,
-            ),
-          }));
-        else
-          update((v) => ({
-            ...v,
-            messages: [...v.messages, { role: "coach" as const, text: r.message }].slice(-40),
-          }));
+        if (action === "feedback") update(v => ({ ...v, answers: v.answers.map(a => a.id === attemptId && a.stage === stage ? { ...a, feedback: r, feedbackAt: new Date().toISOString(), status: "complete" as const } : a) }));
+        else update(v => ({ ...v, messages: [...v.messages, { role: "coach" as const, text: r.message }].slice(-40) }));
       }
     } catch (e) {
-      if (gate.current.current(id))
-        setError(
-          e instanceof Error ? e.message : "Your coach could not respond. Your work is kept.",
-        );
-    } finally {
-      if (gate.current.current(id)) setBusy(false);
-    }
+      if (valid()) {
+        if (action === "feedback") update(v => ({ ...v, answers: v.answers.map(a => a.id === attemptId ? { ...a, status: "failed" as const } : a) }));
+        setError(e instanceof Error ? e.message : "Your coach could not respond. Your work is kept.");
+      }
+    } finally { if (valid()) { pendingAttempt.current = undefined; setBusy(false); } }
   }
   return (
     <div className="mx-auto max-w-7xl px-5 py-8 md:py-12">
@@ -120,6 +117,12 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
       </div>
       <h1 className="mt-4 max-w-4xl text-4xl leading-tight md:text-5xl">{s.scenario.title}</h1>
       <SaveNotice />
+      {s.stage !== "decisions" && (
+        <Button variant="ghost" size="lg" className="mt-4" disabled={busy} onClick={() => {
+          cancel(); setError(""); setOfflineNote("");
+          update(v => ({ ...v, stage: v.stage === "complete" ? "transfer" : v.stage === "transfer" ? "interview" : "decisions" }));
+        }}>Back to previous stage</Button>
+      )}
       <ol className="mt-7 flex flex-wrap gap-3 border-b border-border pb-5 text-sm">
         {["decisions", "interview", "transfer"].map((v, i) => (
           <li key={v} className={s.stage === v ? "text-teal" : "text-muted-foreground"}>
@@ -141,7 +144,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
             <p className="text-sm font-semibold">Your objective</p>
             <p className="mt-1 text-muted-foreground">{s.scenario.objective}</p>
           </div>
-          <WorkScene scene={s.scenario.scene} metrics={committed.at(-1)?.metrics} />
+          <WorkScene scene={s.scenario.scene} choice={committed.at(-1)} />
           {committed.length > 0 && (
             <p className="text-xs text-muted-foreground">
               Tradeoff values are illustrative scenario assumptions, not measured results.
@@ -181,9 +184,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
                         size="lg"
                         variant="outline"
                         className="h-auto min-h-14 justify-between whitespace-normal rounded-lg py-4 text-left text-base"
-                        onClick={() =>
-                          update((v) => ({ ...v, choices: { ...v.choices, [decision.id]: c.id } }))
-                        }
+                        onClick={() => { cancel(); update((v) => ({ ...v, choices: { ...v.choices, [decision.id]: c.id } })); }}
                       >
                         {c.label}
                         <ArrowRight className="shrink-0" />
@@ -242,32 +243,21 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
                 >
                   <Send /> {s.source === "example" ? "Record my reflection" : "Get coach feedback"}
                 </Button>
-                {s.answers.some((a) => a.stage === stage) && (
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => {
-                      update((v) => ({
-                        ...v,
-                        stage:
-                          v.stage === "decisions"
-                            ? "interview"
-                            : v.stage === "interview"
-                              ? "transfer"
-                              : "complete",
-                      }));
-                      setAnswer("");
-                      setOfflineNote("");
-                      setError("");
-                    }}
-                  >
+                {currentAttempt && (
+                  <Button variant="outline" size="lg" disabled={!canAdvance(s, busy)} onClick={advance}>
                     Continue <ArrowRight />
                   </Button>
                 )}
+                {!busy && currentAttempt?.status === "failed" && (
+                  <Button variant="ghost" size="lg" onClick={advance}>
+                    Skip feedback and continue · not evaluated <ArrowRight />
+                  </Button>
+                )}
+
               </div>
             </div>
           )}
-          {lastFeedback && (
+          {s.stage !== "complete" && lastFeedback && (
             <div className="mt-7 border-t border-border pt-5">
               <p className="kicker">
                 AI feedback · {lastFeedback.provider} · {lastFeedback.model}
@@ -290,7 +280,8 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
                 size="lg"
                 variant="ghost"
                 className="mt-3"
-                onClick={() => setAnswer(s.answers.at(-1)?.text ?? "")}
+                disabled={busy}
+                onClick={() => setAnswer(currentAttempt?.text ?? "")}
               >
                 <RefreshCw /> Revise my answer
               </Button>
@@ -322,7 +313,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
                   ? "These reflections are not AI-evaluated."
                   : "Feedback is evidence from this exercise, not a job-readiness score."}
               </p>
-              <p className="mt-3">{nextSuggestion(lastFeedback?.gaps ?? [])}</p>
+              <p className="mt-3">{nextSuggestion(currentAttempt?.feedback?.gaps ?? [])}</p>
               <Button asChild variant="teal" size="lg" className="mt-5">
                 <Link to="/dashboard">
                   See my progress <ArrowRight />
@@ -417,7 +408,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
               rows={3}
               maxLength={2000}
               value={chat}
-              onChange={(e) => setChat(e.target.value)}
+              onChange={(e) => { if (busy) cancel(); setChat(e.target.value); }}
               placeholder="What does retrieval mean here?"
             />
             <Button
@@ -437,9 +428,7 @@ export function PracticeWorkspace({ session: s }: { session: CareerSession }) {
                 size="lg"
                 variant="ghost"
                 onClick={() => {
-                  gate.current.cancel();
-                  control.current?.abort();
-                  setBusy(false);
+                  cancel();
                   setError("Request stopped. Your work is kept.");
                 }}
               >

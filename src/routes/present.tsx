@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "motion/react";
 import { SLIDES } from "@/components/present/slides";
 import { SlideVisual } from "@/components/present/visuals";
+import { useMotionPref } from "@/lib/motion-pref";
 
 export const Route = createFileRoute("/present")({
   head: () => ({
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/present")({
 });
 
 function Present() {
+  const { allowed } = useMotionPref();
   const [i, setI] = useState(0);
   const [notes, setNotes] = useState(false);
   const [secs, setSecs] = useState<number | null>(null);
@@ -45,8 +47,9 @@ function Present() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [go, startTimer]);
-  useEffect(() => { document.title = `${i + 1}/${SLIDES.length} — ${SLIDES[i]!.title}`; }, [i]);
-  const s = SLIDES[i]!;
+  const s = SLIDES[i] ?? SLIDES[0];
+  useEffect(() => { if (s) document.title = `${i + 1}/${SLIDES.length} — ${s.title}`; }, [i, s]);
+  if (!s) return null;
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-background">
       <div className="relative z-10 flex items-center gap-2 border-b border-border/60 px-4 py-2 text-sm backdrop-blur">
@@ -60,13 +63,13 @@ function Present() {
       </div>
       <p className="relative z-10 border-b border-border/40 px-4 py-1.5 text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Presentation preview · does not record learning evidence</p>
       <AnimatePresence mode="wait">
-      <motion.section key={i} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      <motion.section key={i} initial={allowed ? { opacity: 0, y: 18 } : false} animate={{ opacity: 1, y: 0 }} exit={allowed ? { opacity: 0, y: -12 } : { opacity: 1 }} transition={{ duration: allowed ? 0.3 : 0, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-10 grid flex-1 items-center gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr] md:px-16 lg:px-20"
-        onTouchStart={(e) => ((e.currentTarget as HTMLElement).dataset["x"] = String(e.touches[0]!.clientX))}
-        onTouchEnd={(e) => { const x0 = Number((e.currentTarget as HTMLElement).dataset["x"]); const dx = e.changedTouches[0]!.clientX - x0; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); }}>
+        onTouchStart={(e) => { const touch = e.touches[0]; if (touch) e.currentTarget.dataset["x"] = String(touch.clientX); }}
+        onTouchEnd={(e) => { const touch = e.changedTouches[0]; if (!touch) return; const x0 = Number(e.currentTarget.dataset["x"]); const dx = touch.clientX - x0; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); }}>
         <div className="min-w-0">
         <p className="kicker text-sm">{s.kicker}</p>
-        <h1 className="mt-4 max-w-5xl text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[0.95] tracking-[-0.03em]">{s.title}</h1>
+        <h1 className="mt-4 max-w-5xl text-4xl md:text-6xl lg:text-7xl font-medium leading-tight">{s.title}</h1>
         <div className="mt-10">{s.body}</div>
         {s.demoCue && (
           <div className="mt-10 flex flex-wrap items-center gap-4">
