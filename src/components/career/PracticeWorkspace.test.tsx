@@ -51,3 +51,18 @@ it("ignores an old response after editing then retrying, and keeps failed attemp
   await waitFor(() => expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled());
   expect(careerStore.get().sessions[0]?.answers.map(a => a.status)).toEqual(["failed", "failed", "complete"]);
 });
+it("revisits a choice, keeps the initial response and help, and requires new feedback", async () => {
+  mocks.call.mockResolvedValue(result);
+  render(<Wrapper />);
+  fireEvent.change(screen.getByLabelText("Your answer"), { target: { value: "Initial reasoning" } });
+  fireEvent.click(screen.getByRole("button", { name: "Get coach feedback" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled());
+  const initial = careerStore.get().sessions[0]?.answers[0];
+  fireEvent.click(screen.getByRole("button", { name: /Revisit decision: What is your first approach/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Remove repeated numeric values", exact: true }));
+  expect(screen.queryByText("Feedback for this attempt")).toBeNull();
+  expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
+  expect(careerStore.get().sessions[0]?.answers[0]).toEqual(initial);
+  expect(careerStore.get().sessions[0]?.choiceHistory?.map(c => c.choiceId)).toContain("choice-0");
+  expect(careerStore.get().sessions[0]?.helpUsed).toBe(0);
+});
