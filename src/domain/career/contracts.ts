@@ -9,8 +9,8 @@ const text = (max: number) =>
     .min(1)
     .max(max)
     .refine(
-      (v) => !/[<>]|https?:\/\/|javascript:|\b(?:SELECT|INSERT|DROP)\s/i.test(v),
-      "Use plain text, not code or links.",
+      (v) => !/<\/?(?:script|iframe|style|img|svg|object)\b|https?:\/\/|javascript:/i.test(v),
+      "Use bounded text without executable markup or links.",
     );
 export const TOPICS = [
   "AI engineer",

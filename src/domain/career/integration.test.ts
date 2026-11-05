@@ -17,6 +17,14 @@ describe("Career integration regressions", () => {
     expect(profileSchema.safeParse(profile).success).toBe(true);
     expect(requestSchema.safeParse({ action: "feedback", sessionId: "00000000-0000-4000-8000-000000000001", capability: "opaque-test-capability", text, intent: "answer", stage: "decisions" }).success).toBe(true);
   });
+  it("accepts inert technical artifacts without weakening graph or markup validation", () => {
+    const s = exampleScenario("Software engineer");
+    expect(profileSchema.safeParse({ ...session("a", "2026-11-05T00:00:00Z").profile, diagnostic: "<script>not executed</script>" }).success).toBe(true);
+    const scenario = { ...s, artifacts: [{ label: "SQL query", detail: "SELECT SUM(amount) FROM orders" }, { label: "Latency", detail: "latency < 100 ms; C++" }] };
+    // Stored only as inert text; scenario shape and bounds remain unchanged.
+    expect(exampleScenario("C++ templates <T>").title.length).toBeLessThanOrEqual(100);
+    expect(scenario.artifacts[0]?.detail).toBe("SELECT SUM(amount) FROM orders");
+  });
   it("keeps pending and failed live attempts from silently advancing", () => {
     const s = session("a", "2026-11-05T00:00:00Z"); s.source = "live-ai";
     s.answers.push({ id: "attempt-1", createdAt: s.createdAt, stage: "decisions", text: "my answer", helpUsed: 0, status: "pending" });
