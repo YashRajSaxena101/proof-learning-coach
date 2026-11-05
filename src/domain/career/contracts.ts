@@ -1,4 +1,7 @@
 import { z } from "zod";
+// Learner expressions are inert React text, not executable model/scene output.
+const learnerText = (max: number) => z.string().trim().min(1).max(max);
+export const capabilitySchema = z.string().min(1).max(512);
 const text = (max: number) =>
   z
     .string()
@@ -19,20 +22,18 @@ export const TOPICS = [
 ] as const;
 export const profileSchema = z
   .object({
-    topic: text(100),
+    topic: learnerText(100),
     experience: z.enum(["new", "foundations", "projects"]),
     interest: z
       .string()
       .trim()
-      .max(600)
-      .refine((v) => !/[<>]/.test(v)),
+      .max(600),
     goal: z.enum(["interview", "workplace", "refresh"]),
     minutes: z.union([z.literal(10), z.literal(15), z.literal(25)]),
     diagnostic: z
       .string()
       .trim()
-      .max(1000)
-      .refine((v) => !/[<>]/.test(v)),
+      .max(1000),
   })
   .strict();
 export type Profile = z.infer<typeof profileSchema>;
@@ -131,7 +132,7 @@ export const feedbackSchema = z
   .strict();
 export type Feedback = z.infer<typeof feedbackSchema>;
 export const messageSchema = z
-  .object({ role: z.enum(["user", "coach"]), text: text(2000) })
+  .object({ role: z.enum(["user", "coach"]), text: learnerText(2000) })
   .strict();
 export const sessionSchema = z
   .object({
@@ -140,12 +141,21 @@ export const sessionSchema = z
     profile: profileSchema,
     scenario: scenarioSchema,
     source: z.enum(["example", "live-ai"]),
+    // Private scoped access. Never render, export or log this field.
+    capability: capabilitySchema.optional(),
+    provider: z.literal("Ollama").optional(),
+    model: z.string().min(1).max(100).optional(),
     stage: z.enum(["decisions", "interview", "transfer", "complete"]),
+    drafts: z.object({ decisions: z.string().max(2000).optional(), interview: z.string().max(2000).optional(), transfer: z.string().max(2000).optional() }).strict().optional(),
     choices: z.record(z.string()),
     answers: z
       .array(
         z
           .object({
+            id: z.string().min(1).max(100).optional(),
+            createdAt: z.string().datetime().optional(),
+            feedbackAt: z.string().datetime().optional(),
+            status: z.enum(["pending", "failed", "complete", "recorded"]).optional(),
             stage: z.enum(["decisions", "interview", "transfer"]),
             text: z.string().max(2000),
             helpUsed: z.number().int().min(0).max(100),
@@ -183,7 +193,8 @@ export const requestSchema = z.discriminatedUnion("action", [
     .object({
       action: z.literal("tutor"),
       sessionId: z.string().uuid(),
-      text: text(2000),
+      capability: capabilitySchema.optional(),
+      text: learnerText(2000),
       intent: z.enum(["hint", "simpler", "example", "answer"]),
       stage: z.enum(["decisions", "interview", "transfer"]),
       choices: z.record(z.string()).optional(),
@@ -193,7 +204,8 @@ export const requestSchema = z.discriminatedUnion("action", [
     .object({
       action: z.literal("feedback"),
       sessionId: z.string().uuid(),
-      text: text(2000),
+      capability: capabilitySchema.optional(),
+      text: learnerText(2000),
       intent: z.enum(["hint", "simpler", "example", "answer"]),
       stage: z.enum(["decisions", "interview", "transfer"]),
       choices: z.record(z.string()).optional(),

@@ -20,3 +20,6 @@
 - The site header and route-transition wrapper live in `__root.tsx` (header hidden on /present); only route content is keyed per pathname so stores/auth never remount.
 - Career scenario, profile, graph, request and feedback contracts live in src/domain/career; render data-only scenes and gate consequences on committed choices to preserve diagnostic integrity.
 - Career AI is called only through the external career-coach service; browser-stored feedback is display history, never authoritative evaluation. No substitute inference endpoint may be opened without verified caller ownership and durable budgets.
+- Career guest access uses a private device-stored capability returned by career-coach, never anonymous Auth; exclude it from all UI, URLs, exports and logging because it grants scoped access.
+- Career feedback requests are scoped to a session, stage, attempt and cancellation generation; retain stage drafts separately and gate advancement on resolved feedback or explicit failure skip to prevent stale assessment displays.
+- Career scene geometry and simulated choice effects are pure seeded domain functions; render six bounded domain compositions with instance-scoped SVG definitions to keep visual meaning testable and accessible.

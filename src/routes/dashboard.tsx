@@ -3,6 +3,7 @@ import { ArrowRight, Plus, Check, Clock } from "lucide-react";
 import { useCareer, careerStore } from "@/services/career/store";
 import { useEffect } from "react";
 import { nextSuggestion } from "@/domain/career/contracts";
+import { latestFeedback, visibleDecisionForScene } from "@/domain/career/scene";
 import { Button } from "@/components/ui/button";
 import { Page } from "@/components/SiteHeader";
 import { WorkScene } from "@/components/career/WorkScene";
@@ -32,9 +33,7 @@ export function CareerDashboard() {
   const state = useCareer();
   useEffect(() => careerStore.init(), []);
   const active = state.sessions.find((s) => s.id === state.activeId);
-  const feedback = state.sessions.flatMap((s) =>
-    s.answers.flatMap((a) => (a.feedback ? [a.feedback] : [])),
-  );
+  const feedback = latestFeedback(state.sessions);
   return (
     <Page>
       <div className="relative isolate">
@@ -74,7 +73,7 @@ export function CareerDashboard() {
               </Link>
             </Button>
           </div>
-          <WorkScene scene={active.scenario.scene} compact />
+          <WorkScene scene={active.scenario.scene} choice={visibleDecisionForScene(active)} compact />
         </section>
       ) : (
         <section className="mt-10 border-y border-border py-10">
@@ -154,10 +153,10 @@ export function CareerDashboard() {
           </section>
           <section className="mt-10 border-t border-border pt-7">
             <p className="kicker">One next step</p>
-            <h2 className="mt-3 text-2xl">{nextSuggestion(feedback.at(-1)?.gaps ?? [])}</h2>
+            <h2 className="mt-3 text-2xl">{nextSuggestion(feedback?.feedback.gaps ?? [])}</h2>
             <p className="mt-3 text-muted-foreground">
-              {feedback.length
-                ? "Based on recorded AI feedback in this exercise."
+              {feedback
+                ? "Based on your latest recorded Ollama feedback, kept on this device; not a verified skill assessment."
                 : "No AI-evaluated gaps yet. This is an exploration suggestion, not a skill assessment."}
             </p>
             <Button asChild size="lg" variant="teal" className="mt-5">
