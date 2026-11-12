@@ -6,6 +6,16 @@
 
 ![Proof homepage with interactive particles and its animated companion](docs/proof-home.png)
 
+The guided presentation introduces the learning loop and lets visitors try a prepared decision:
+
+![Proof's guided presentation with the animated companion](docs/proof-present.jpg)
+
+## Why this project stands out
+
+Proof connects a learner's background to a concrete workplace decision. Instead of stopping at a generated answer, the experience asks the learner to make a choice, explain their reasoning, review feedback, and revisit the idea in a changed situation. An animated companion makes contextual help available throughout the experience.
+
+The engineering challenge is making that experience dependable around a probabilistic model. Proof treats generated content as data, validates its structure, checks résumé evidence against the excerpt, bounds requests, and gives learners control over what they submit and apply. The prepared tour and fixed examples offer a clear way to explore the product when live AI is unavailable.
+
 ## Engineering highlights
 
 - **Personalized LLM workflows:** generate workplace scenarios, contextual coaching, résumé suggestions, and feedback using Ollama's chat API and schema-validated JSON.
@@ -43,13 +53,7 @@ Browser: interactive scene, explanation, feedback and local progress
 
 Career progress is stored in the browser; the original data investigation has a separate account-backed sync. The model provider key remains in server-side configuration.
 
-Proof helps college graduates practice the work behind a job interview. Learners choose a role or topic, describe their experience and interests, and answer a short starting question. The AI coach generates a fictional workplace scenario with decisions, constraints, evidence, an interview question, and a related challenge in a new context.
-
-The aim is to turn concepts into reasoning a learner can explain: make a choice, ask for help, explain a tradeoff, receive feedback, revise, and try another constraint. Choices, attempts, revisions, and help requests remain visible. Proof does not claim to measure job readiness or guarantee employment.
-
-- [Public Lovable application](https://proof-learning-coach.lovable.app)
-- [Existing Lovable project](https://lovable.dev/projects/25cd456b-a1ba-496d-9f5b-2887b65879bd)
-- [Hackathon problem statement](https://aibizclub.org/utds-biggest-no-code-problem-statement)
+Proof does not claim to measure job readiness or guarantee employment. It was built for [UTD's Biggest No-Code Hackathon](https://aibizclub.org/utds-biggest-no-code-problem-statement).
 
 ## Experience
 
@@ -75,7 +79,7 @@ bunx tsc --noEmit
 bun run build
 ```
 
-The frontend uses React, TypeScript, TanStack Start, Tailwind, Motion, and accessible Radix components. Source rules are in `AGENTS.md`. Push ordinary commits to the connected `main` branch to sync changes into Lovable; never rewrite published history.
+The frontend uses React, TypeScript, TanStack Start, Tailwind, Motion, and accessible Radix components. Source rules are in `AGENTS.md`. Lovable hosting and its Git connection are configured separately.
 
 ## AI and persistence
 
