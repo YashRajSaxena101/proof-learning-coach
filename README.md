@@ -1,5 +1,48 @@
 # Proof Learning Coach
 
+**An AI-powered career practice studio that turns a learner's goals into workplace decisions.** Built for UTD's Biggest No-Code Hackathon and developed further with direct engineering, Proof combines personalized LLM generation, structured feedback, interactive scenarios, and a conversational companion.
+
+[Try the live app](https://proof-learning-coach.lovable.app) · [Watch the guided product tour](https://proof-learning-coach.lovable.app/present) · [Start a practice](https://proof-learning-coach.lovable.app/practice?new=true)
+
+![Proof homepage with interactive particles and its animated companion](docs/proof-home.png)
+
+## Engineering highlights
+
+- **Personalized LLM workflows:** generate workplace scenarios, contextual coaching, résumé suggestions, and feedback using Ollama's chat API and schema-validated JSON.
+- **Human control and grounding:** résumé text is reviewed before submission; suggested evidence is checked against the supplied excerpt and the learner confirms the practice direction.
+- **Reliable AI boundaries:** Zod contracts, bounded inputs and outputs, session capabilities, atomic usage budgets, server-side provider secrets, and retry paths protect the application around model calls.
+- **Interactive learning:** learners commit to decisions, inspect consequences, explain tradeoffs, revise responses, and apply their reasoning to a changed constraint.
+- **Product engineering:** responsive React interfaces, accessible components, reduced-motion support, canvas particle physics, and a character with animated states.
+- **Verification:** 109 frontend tests across 20 files passed in the November 2026 release, alongside TypeScript checks and backend fixture tests. These checks do not measure learning outcomes.
+
+## Technology and workflow
+
+| Area | Technologies and methods |
+| --- | --- |
+| AI engineering | Ollama API, Gemma model, prompt design, structured JSON generation, Zod validation, contextual tutoring and feedback |
+| Frontend | React 19, TypeScript, TanStack Start and Router, Vite, Tailwind CSS, Radix UI, Motion, Canvas and SVG |
+| Backend | Supabase Edge Functions, Deno, PostgreSQL, Supabase Auth, row-level security, server-side secrets |
+| Document processing | PDF.js, fflate, browser-side PDF/DOCX/TXT extraction |
+| Quality | Vitest, Testing Library, TypeScript, ESLint, browser and responsive testing |
+| Delivery | Git, GitHub, Lovable hosting, Supabase deployment |
+| Development workflow | Codex with Lovable, Supabase, GitHub and Figma MCP connections for development and investigation |
+
+The MCP connections supported the development workflow; the application does not expose an MCP server or implement an autonomous agent. It calls an existing model for inference and does not train or fine-tune one.
+
+## Architecture
+
+```text
+Browser: learner profile + reviewed résumé + practice decisions
+    ↓ explicit requests
+Supabase Edge Function: validation, session checks and usage budgets
+    ↓ structured chat request
+Ollama API: scenario, tutor, feedback or résumé suggestions
+    ↓ validated response
+Browser: interactive scene, explanation, feedback and local progress
+```
+
+Career progress is stored in the browser; the original data investigation has a separate account-backed sync. The model provider key remains in server-side configuration.
+
 Proof helps college graduates practice the work behind a job interview. Learners choose a role or topic, describe their experience and interests, and answer a short starting question. The AI coach generates a fictional workplace scenario with decisions, constraints, evidence, an interview question, and a related challenge in a new context.
 
 The aim is to turn concepts into reasoning a learner can explain: make a choice, ask for help, explain a tradeoff, receive feedback, revise, and try another constraint. Choices, attempts, revisions, and help requests remain visible. Proof does not claim to measure job readiness or guarantee employment.
